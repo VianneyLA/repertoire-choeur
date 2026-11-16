@@ -44,7 +44,7 @@ CONFIG = RACINE / "site.json"
 # À augmenter pour refaire tous les calculs (si la façon de convertir ou de caler change).
 VERSION_CONVERSION = "2"
 VERSION_MIX = "1"
-VERSION_NOTES = "2"   # façon de repérer le début et la fin du chant
+VERSION_NOTES = "3"   # façon de repérer le début et la fin du chant
 
 # Une vidéo (répétition filmée, fichier .mpeg) donne sa piste son.
 EXT_AUDIO = {".mp3", ".mpeg", ".mpga", ".mpg", ".m4a", ".aac", ".opus", ".ogg", ".oga", ".wav", ".flac", ".amr",
@@ -485,29 +485,32 @@ def detecter_notes(mp3: Path) -> dict:
     """Début et fin du chant dans une piste.
 
     Une piste commence souvent par une annonce : le chef dit le titre, la voix, parfois chante la note de
-    départ. Le chant, lui, se reconnaît à une voix continue pendant plusieurs secondes : le début est la
-    première attaque d'un passage où la voix chante presque sans interruption au moins 2 s, et reste chantée
-    sur les 6 s qui suivent. Le seuil se règle sur la piste elle-même (une voix grave paraît moins continue).
-    La fin est la fin de la dernière note tenue."""
+    départ. Le chant s'en distingue par sa force et sa continuité : le début est la première attaque d'un
+    passage d'au moins 3 s chanté aussi fort que le reste du morceau, presque sans interruption, et dont la
+    première seconde est déjà chantée fort. Les seuils se règlent sur la piste elle-même (une voix grave
+    paraît moins continue). La fin est la fin de la dernière note tenue."""
     import numpy as np
 
     a = trames_voix(mp3)
     db, fps, voisee = a["db"], a["fps"], a["voisee"].astype(float)
     n = len(db)
-    if a["duree"] < 3:
+    if a["duree"] < 4:
         return {"debut": 0.0, "fin": a["duree"], "sur": False}
 
     def moyenne_devant(x: np.ndarray, largeur: int) -> np.ndarray:
         cumul = np.concatenate([[0.0], np.cumsum(x)])
-        fin_ = np.minimum(np.arange(n) + largeur, n)
-        return (cumul[fin_] - cumul[:n]) / np.maximum(fin_ - np.arange(n), 1)
+        bout = np.minimum(np.arange(n) + largeur, n)
+        return (cumul[bout] - cumul[:n]) / np.maximum(bout - np.arange(n), 1)
 
-    corps = voisee[int(0.2 * n): int(0.8 * n)]
-    seuil = max(0.45, 0.85 * float(corps.mean())) if len(corps) else 0.6
-    r2 = moyenne_devant(voisee, int(2 * fps))
-    r6 = moyenne_devant(voisee, int(6 * fps))
-    niveau = moyenne_devant(np.maximum(db, -60), int(2 * fps))
-    chante = (r2 >= seuil) & (r6 >= 0.85 * seuil) & (niveau >= -20)
+    niveau_db = np.maximum(db, -60)
+    milieu = slice(int(0.2 * n), int(0.8 * n))
+    niveau_corps = float(niveau_db[milieu].mean())
+    voix_corps = float(voisee[milieu].mean())
+    n1 = moyenne_devant(niveau_db, int(fps))
+    n3 = moyenne_devant(niveau_db, int(3 * fps))
+    v3 = moyenne_devant(voisee, int(3 * fps))
+    chante = (n1 >= niveau_corps - 6) & (n3 >= niveau_corps - 4) & (v3 >= max(0.4, 0.75 * voix_corps))
+    chante[n - int(3 * fps):] = False
     tenues = notes_tenues(a)
     fin = tenues[-1][1] / fps if tenues else float(np.nonzero(db > -30)[0][-1] / fps)
     if not chante.any():
@@ -515,21 +518,18 @@ def detecter_notes(mp3: Path) -> dict:
     i = int(np.argmax(chante))
     while i < n - 1 and not (voisee[i] and db[i] > -28):
         i += 1     # première trame chantée du passage
-    # Remonte jusqu'à l'attaque : la voix peut avoir commencé un peu avant que le passage soit reconnu.
-    limite = max(0, i - int(1.5 * fps))
-    trou = 0
-    j = i
+    # Remonte jusqu'à l'attaque, tant que la voix chante sans s'interrompre (0,1 s au plus).
+    limite = max(0, i - int(1.0 * fps))
+    j, trou = i, 0
     while j > limite:
         if voisee[j - 1] and db[j - 1] > -28:
             trou = 0
         else:
             trou += 1
-            if trou > int(0.08 * fps):
+            if trou > int(0.1 * fps):
                 break
         j -= 1
     debut = j + trou
-    while debut > 0 and db[debut - 1] > db[debut] - 15 and debut > j + trou - int(0.1 * fps):
-        debut -= 1
     return {"debut": round(debut / fps, 2), "fin": round(max(fin, debut / fps + 1), 2), "sur": True}
 
 
