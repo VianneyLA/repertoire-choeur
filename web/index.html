@@ -109,10 +109,10 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
 
 /* Page d'un chant */
 .retour { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; color: var(--muted); font-weight: 700; font-size: 15px; padding: 4px 0; }
-.onglets { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 4px; padding: 4px; background: var(--soft); border-radius: 14px; }
-.onglet { display: flex; align-items: center; justify-content: center; gap: 5px; padding: 9px 2px; border: 0; border-radius: 10px; background: transparent; font-size: 14px; font-weight: 700; min-width: 0; }
+.onglets { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: var(--soft); border-radius: 14px; }
+.onglet { flex: 1 1 0; min-width: 76px; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 2px; border: 0; border-radius: 10px; background: transparent; font-size: 14px; font-weight: 700; }
 .onglet span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.onglet .pastille { width: 8px; height: 8px; }
+.onglet .pastille { width: 9px; height: 9px; }
 .onglet[aria-pressed="true"] { background: var(--c); color: var(--on-accent); }
 .onglet[aria-pressed="true"] .pastille { background: var(--on-accent); }
 .onglet:disabled { color: var(--muted); font-weight: 400; }
