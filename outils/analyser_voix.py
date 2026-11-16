@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Mesure, pour chaque chant du site construit, si ses pistes sont calées entre elles.
 
-    python3 outils/analyser_voix.py _site
+    python3 outils/analyser_voix.py _site            les pistes telles que déposées
+    python3 outils/analyser_voix.py _site --calees   les pistes recalées pour l'écoute à plusieurs voix
 
 Pour chaque piste : durée, silence au début et à la fin, puis son décalage avec la piste de référence
 (la première voix), mesuré sur tout le morceau et fenêtre par fenêtre. Un décalage constant veut dire
@@ -82,10 +83,11 @@ def decalage(ref: np.ndarray, autre: np.ndarray, max_s: float) -> tuple[float, f
 
 def main() -> None:
     site = Path(sys.argv[1])
+    calees = "--calees" in sys.argv
     page = (site / "index.html").read_text(encoding="utf-8")
     donnees = json.loads(re.search(r'<script type="application/json" id="donnees">(.*?)</script>', page, re.S).group(1).replace("<\\/", "</"))
     for c in donnees["chants"]:
-        pistes = c["pistes"]
+        pistes = [dict(p, src=p["mix"]["src"]["1"]) for p in c["pistes"] if p.get("mix")] if calees else c["pistes"]
         if len(pistes) < 2:
             continue
         print(f"\n=== {c['groupe'] + ' – ' if c['groupe'] else ''}{c['titre']} ===")

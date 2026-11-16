@@ -3,8 +3,11 @@
 Le site où les choristes écoutent leur voix, chant par chant : un lecteur par pupitre (reculer, ralentir,
 répéter un passage) et la partition dessous. Il se lit sur téléphone, sans compte ni application.
 
+Quand un chant a plusieurs voix, on peut aussi les écouter ensemble : sa voix en avant, tout le chœur, ou
+toutes les voix sauf la sienne, avec un volume par voix.
+
 Les chefs de chœur ne touchent jamais au site. Ils déposent les fichiers dans un dossier Drive, et le site
-relit ce dossier toutes les heures. La page « Chef de chœur ? » du site leur explique comment faire.
+relit ce dossier tous les quarts d'heure. La page « Chef de chœur ? » du site leur explique comment faire.
 
 ## Comment ça marche
 
@@ -22,6 +25,27 @@ Dossier Drive des chefs ──(toutes les heures, GitHub Actions)──▶ const
   leurs exemples sont dans `tests/test_noms.py`.
 - Un fichier illisible n'empêche pas le reste de paraître : il est listé en bas de la page des chefs.
 
+## Écoute à plusieurs voix
+
+Les voix d'un chant, enregistrées séparément, ne partent pas au même moment (une annonce parlée avant la
+première note) ni au même tempo. Pour les écouter ensemble, la construction les recale :
+
+1. Elle repère dans chaque piste la première et la dernière note chantée : la première note tenue au moins
+   0,3 s sur une même hauteur (une annonce parlée ne tient pas sa hauteur, un clic ne dure pas).
+2. Si le dossier du chant contient un document Google « Calage », ses repères remplacent ceux trouvés
+   automatiquement. Il se remplit depuis la page « Caler les voix » du site (lien en bas de chaque chant).
+   Des repères au milieu (une attaque commune) affinent le calage.
+3. Entre deux repères, chaque piste est accélérée ou ralentie sans changer la hauteur (rubberband), pour que
+   les repères de toutes les voix tombent au même moment. Les positions communes sont la médiane des voix.
+4. Chaque piste recalée existe en trois vitesses (1, 0,75 et 0,5) ; le navigateur les décode et les lance
+   au même instant (Web Audio), ce qui les garde ensemble. Changer de voix garde la position musicale.
+
+Un morceau étiré de plus de 25 % est signalé sur la page des chefs : un repère est sans doute mal placé.
+Des voix chantées sur le même métronome n'ont besoin d'aucun calage.
+
+`outils/analyser_voix.py` (lancé à la main par Actions → « Analyser le calage des voix ») mesure le décalage
+restant entre les pistes, déposées ou recalées (`--calees`).
+
 Le site n'est pas référencé par les moteurs de recherche : on y arrive par son adresse.
 
 ## Mise en place (une fois)
@@ -36,11 +60,11 @@ Le site n'est pas référencé par les moteurs de recherche : on y arrive par so
    `DRIVE_API_KEY` (la clé) et `DRIVE_FOLDER_ID` (l'identifiant du dossier).
 4. **Pages** (Settings → Pages → Build and deployment → Source) : « GitHub Actions ».
 
-Pour mettre le site à jour sans attendre l'heure : Actions → Site du répertoire → Run workflow.
+Pour mettre le site à jour sans attendre : Actions → Site du répertoire → Run workflow.
 
 ## Essayer sur son ordinateur
 
-Il faut Python 3, ffmpeg et poppler (`pdftoppm`).
+Il faut Python 3 avec numpy, ffmpeg (avec rubberband, sinon atempo prend le relais) et poppler (`pdftoppm`).
 
 ```
 python3 construire.py lister --local "/chemin/vers/Répertoire du chœur"
@@ -51,3 +75,8 @@ python3 -m http.server -d _site 8000
 ## Changer le nom du chœur
 
 Dans `site.json` : `nom`, `sous_titre`, et `nouveau_jours` (combien de jours un chant reste marqué « Nouveau »).
+
+## Place prise
+
+GitHub Pages accepte 1 Go. Un chant à quatre voix de 2 min 30 prend environ 20 Mo (pistes, pistes recalées en
+trois vitesses, partition) : une cinquantaine de chants tiennent.

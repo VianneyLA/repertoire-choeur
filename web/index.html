@@ -39,7 +39,7 @@
 [data-voix="alt"] { --c: var(--alt); }
 [data-voix="ten"] { --c: var(--ten); }
 [data-voix="bas"] { --c: var(--bas); }
-[data-voix="tut"], [data-voix="acc"], [data-voix="autre"] { --c: var(--neutre); }
+[data-voix="tut"], [data-voix="acc"], [data-voix="autre"], [data-voix="mix"] { --c: var(--neutre); }
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -72,6 +72,7 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
 .eyebrow { margin: 0 0 6px; font-size: 15px; color: var(--muted); }
 .vue { display: flex; flex-direction: column; gap: 22px; }
 .bloc { display: flex; flex-direction: column; gap: 10px; }
+.bloc-serre { display: flex; flex-direction: column; gap: 8px; }
 .aide { margin: 0; font-size: 14px; color: var(--muted); }
 .texte { margin: 0; max-width: 62ch; }
 
@@ -83,7 +84,6 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
 .voix-btn[aria-pressed="true"] { background: var(--c); border-color: var(--c); color: var(--on-accent); }
 .voix-btn[aria-pressed="true"] .pastille { background: var(--on-accent); }
 
-/* Recherche */
 .cherche { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; }
 .cherche::placeholder { color: var(--muted); }
 
@@ -99,6 +99,8 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
 .points i { width: 9px; height: 9px; border-radius: 50%; background: var(--c); display: block; }
 .points i.manque { background: transparent; box-shadow: inset 0 0 0 1.5px var(--line); }
 .badge { font: 700 11px/1 var(--font-body); letter-spacing: .06em; text-transform: uppercase; padding: 4px 7px; border-radius: 6px; background: var(--ink); color: var(--bg); }
+.badge.doux { background: var(--soft); color: var(--muted); }
+.badge.alerte { background: var(--alerte); color: var(--bg); }
 .vide { padding: 22px 18px; border-radius: 14px; border: 1.5px dashed var(--line); display: flex; flex-direction: column; gap: 6px; }
 .vide strong { font: 700 18px/1.25 var(--font-display); }
 
@@ -116,11 +118,20 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
 .onglet:disabled { color: var(--muted); font-weight: 400; }
 .onglet:disabled .pastille { background: transparent; box-shadow: inset 0 0 0 1.5px var(--muted); }
 
+.melange { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.preset { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 10px 12px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--surface); text-align: left; min-width: 0; }
+.preset strong { font-size: 15px; line-height: 1.2; }
+.preset span { font-size: 13px; color: var(--muted); line-height: 1.25; }
+.preset[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+
 .lecteur { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 18px 16px 16px; display: flex; flex-direction: column; gap: 14px; }
 .piste { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .piste strong { font: 700 22px/1.15 var(--font-display); min-width: 0; overflow-wrap: anywhere; }
-.piste span { font-size: 13px; color: var(--muted); flex: none; }
+.piste span { font-size: 13px; color: var(--muted); text-align: right; }
 .erreur { margin: 0; font-size: 14px; color: var(--alerte); }
+.chargement { margin: 0; font-size: 14px; color: var(--muted); display: flex; align-items: center; gap: 10px; }
+.chargement i { flex: 1; height: 4px; border-radius: 2px; background: var(--soft); overflow: hidden; position: relative; }
+.chargement i b { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--c); transition: width .2s; }
 
 .barre { position: relative; height: 34px; }
 .barre-int { position: absolute; top: 0; bottom: 0; left: 10px; right: 10px; }
@@ -141,6 +152,7 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
 .rond { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--surface); font: 500 14px/1 var(--font-mono); }
 .rond:active { background: var(--soft); }
 .lecture { width: 76px; height: 76px; border: 0; background: var(--c); color: var(--on-accent); }
+.lecture:disabled { opacity: .45; }
 .lecture:active { background: var(--c); filter: brightness(.92); }
 .lecture svg { width: 30px; height: 30px; }
 
@@ -151,9 +163,23 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
 .seg button[aria-pressed="true"] { background: var(--surface); box-shadow: 0 1px 2px rgb(0 0 0 / .12); color: var(--ink); }
 .boucle-btns { display: flex; gap: 6px; flex-wrap: wrap; }
 .bouton { display: inline-flex; align-items: center; gap: 6px; padding: 9px 12px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--surface); font-size: 14px; font-weight: 700; text-decoration: none; }
+.bouton:disabled { opacity: .45; }
 .bouton.plein { background: var(--c); border-color: var(--c); color: var(--on-accent); }
 .bouton.discret { border-color: transparent; background: var(--soft); }
+.bouton.petit { padding: 6px 9px; font-size: 13px; border-radius: 8px; }
 .boucle-aide { grid-column: 1 / -1; }
+
+.reglages { border-top: 1px solid var(--soft); padding-top: 12px; }
+.reglages summary { cursor: pointer; font-weight: 700; font-size: 15px; list-style: none; display: flex; align-items: center; gap: 8px; }
+.reglages summary::-webkit-details-marker { display: none; }
+.reglages summary::before { content: ""; width: 8px; height: 8px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(-45deg); transition: transform .15s; }
+.reglages[open] summary::before { transform: rotate(45deg); }
+.curseurs { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.curseur { display: grid; grid-template-columns: 96px minmax(0, 1fr) 40px; align-items: center; gap: 10px; }
+.curseur label { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; min-width: 0; }
+.curseur label span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.curseur input { width: 100%; accent-color: var(--c); }
+.curseur output { font: 500 13px/1 var(--font-mono); color: var(--muted); text-align: right; }
 
 /* Partition */
 .partition-tete { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
@@ -166,6 +192,24 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
 .partition-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 
 .maj { margin: 0; font-size: 14px; color: var(--muted); }
+.lien-discret { font-size: 14px; color: var(--muted); }
+
+/* Calage */
+.cartes-calage { display: flex; flex-direction: column; gap: 10px; }
+.carte-calage { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.carte-tete { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.carte-tete strong { font: 700 18px/1.2 var(--font-display); }
+.mini { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.mini .rond { width: 44px; height: 44px; }
+.mini .rond.actif { background: var(--c); border-color: var(--c); color: var(--on-accent); }
+.mini .rond svg { width: 18px; height: 18px; }
+.chrono { font: 500 15px/1 var(--font-mono); font-variant-numeric: tabular-nums; min-width: 64px; }
+.reperes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.repere { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; border-radius: 10px; background: var(--soft); }
+.repere-nom { font-size: 14px; font-weight: 700; display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.repere-nom code { font: 500 16px/1 var(--font-mono); font-variant-numeric: tabular-nums; }
+.repere-btns { display: flex; gap: 4px; flex-wrap: wrap; }
+.sortie { margin: 0; padding: 14px 16px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); font: 500 13.5px/1.7 var(--font-mono); overflow-x: auto; white-space: pre; }
 
 /* Page des chefs de chœur */
 .etapes { margin: 0; padding: 0; list-style: none; counter-reset: e; display: flex; flex-direction: column; gap: 14px; }
@@ -183,6 +227,7 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
 @media (max-width: 420px) {
   .outils { grid-template-columns: minmax(0, 1fr); }
   .commandes { gap: 16px; }
+  .curseur { grid-template-columns: 84px minmax(0, 1fr) 36px; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
 </style>
@@ -219,11 +264,20 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
       <h1 id="chant-titre"></h1>
     </div>
 
-    <div class="onglets" role="group" aria-label="Voix" id="onglets"></div>
+    <div class="bloc-serre" id="bloc-voix">
+      <h2 class="label" id="lbl-voix">Ta voix</h2>
+      <div class="onglets" role="group" aria-labelledby="lbl-voix" id="onglets"></div>
+    </div>
+
+    <div class="bloc-serre" id="bloc-melange" hidden>
+      <h2 class="label" id="lbl-melange">Écouter</h2>
+      <div class="melange" role="group" aria-labelledby="lbl-melange" id="melange"></div>
+    </div>
 
     <section class="lecteur" id="lecteur" aria-label="Lecteur">
-      <div class="piste"><strong id="piste-nom"></strong><span id="piste-duree"></span></div>
-      <p class="erreur" id="erreur" hidden>Cette piste ne se lit pas. Recharge la page ; si ça continue, préviens un chef de chœur.</p>
+      <div class="piste"><strong id="piste-nom"></strong><span id="piste-info"></span></div>
+      <p class="chargement" id="chargement" hidden><span id="chargement-txt"></span><i><b id="chargement-barre"></b></i></p>
+      <p class="erreur" id="erreur" hidden></p>
       <div>
         <div class="barre">
           <div class="barre-int">
@@ -260,6 +314,10 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
         </div>
         <p class="aide boucle-aide" id="boucle-aide"></p>
       </div>
+      <details class="reglages" id="reglages" hidden>
+        <summary>Régler chaque voix</summary>
+        <div class="curseurs" id="curseurs"></div>
+      </details>
     </section>
 
     <section class="lecteur" id="sans-audio" hidden>
@@ -267,7 +325,34 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
     </section>
 
     <div class="vue" id="partitions"></div>
-    <p class="maj" id="chant-maj"></p>
+    <div class="bloc-serre">
+      <p class="maj" id="chant-maj"></p>
+      <a class="lien-discret" id="lien-calage" href="#" hidden>Les voix ne partent pas ensemble ? Caler les voix (chefs de chœur)</a>
+    </div>
+  </main>
+
+  <!-- Calage d'un chant -->
+  <main class="vue" id="vue-calage" hidden>
+    <a class="retour" id="calage-retour" href="#"><svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true"><path d="M13 4l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="calage-retour-txt"></span></a>
+    <div>
+      <p class="eyebrow">Pour les chefs de chœur</p>
+      <h1>Caler les voix</h1>
+    </div>
+    <p class="texte">Pour écouter les voix ensemble, le site fait coïncider des repères : la première note chantée, la dernière, et si besoin des repères au milieu, par exemple une attaque que toutes les voix font ensemble. Entre deux repères, il accélère ou ralentit un peu chaque voix, sans changer la hauteur.</p>
+    <p class="aide" id="calage-etat"></p>
+    <div class="cartes-calage" id="cartes-calage"></div>
+    <div class="partition-actions">
+      <button class="bouton" id="ajout-repere" type="button">Ajouter un repère au milieu</button>
+    </div>
+    <section class="bloc">
+      <h2 class="label">Texte à déposer dans le Drive</h2>
+      <pre class="sortie" id="calage-texte"></pre>
+      <div class="partition-actions">
+        <button class="bouton plein" id="copier-calage" type="button" data-voix="mix">Copier le texte</button>
+        <span class="aide" id="copie-ok" hidden>Copié.</span>
+      </div>
+      <p class="texte">Dans le dossier Drive de ce chant, créez un document Google nommé « Calage » et collez-y ce texte (ou remplacez le texte s'il existe déjà). Le site recale les voix à sa prochaine mise à jour, dans le quart d'heure.</p>
+    </section>
   </main>
 
   <!-- Chefs de chœur -->
@@ -277,11 +362,11 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
       <p class="eyebrow">Pour les chefs de chœur</p>
       <h1>Ajouter ou remplacer un chant</h1>
     </div>
-    <p class="texte">Tout se passe dans le dossier Drive du répertoire, que vous pouvez modifier. Le site le relit toutes les heures : vous ne touchez jamais au site.</p>
+    <p class="texte">Tout se passe dans le dossier Drive du répertoire, que vous pouvez modifier. Le site le relit tous les quarts d'heure : vous ne touchez jamais au site.</p>
     <ol class="etapes">
       <li><div><strong>Créez un dossier par chant</strong>, nommé « Œuvre – Titre » ou « Compositeur – Titre ».<p class="aide">Pour fixer l'ordre de la liste, commencez par un numéro : « 01 – Gluck – Chœur infernal ».</p></div></li>
       <li><div><strong>Déposez-y la partition et un audio par voix.</strong> Le nom de chaque audio dit sa voix : Sopranos, Altos, Ténors, Basses, ou Tutti, Piano.<p class="aide">« Basses 1 » et « Basses 2 » font deux pistes. La partition peut être un PDF ou des photos. Les audios de WhatsApp conviennent tels quels.</p></div></li>
-      <li><div><strong>Attendez une heure au plus.</strong> Le chant apparaît sur le site, marqué « Nouveau ».</div></li>
+      <li><div><strong>Attendez un quart d'heure.</strong> Le chant apparaît sur le site, marqué « Nouveau ».</div></li>
     </ol>
     <pre class="arbo">Répertoire du chœur/
 ├── 01 – Orphée et Eurydice – Chœur infernal/
@@ -289,7 +374,8 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
 │   ├── Sopranos.opus  <b>← tel que sorti de WhatsApp</b>
 │   ├── Altos.mp3
 │   ├── Ténors.mp3
-│   └── Basses.mp3
+│   ├── Basses.mp3
+│   └── Calage         <b>← facultatif, voir plus bas</b>
 └── 02 – Fauré – Cantique de Jean Racine/
     └── …</pre>
     <div class="bloc">
@@ -297,11 +383,16 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
       <p class="texte">Appui long sur l'audio, puis Partager, Drive. Choisissez le dossier du chant et renommez le fichier avec sa voix avant de l'envoyer.</p>
     </div>
     <div class="bloc">
+      <h2 class="label">Écouter les voix ensemble</h2>
+      <p class="texte">Dès qu'un chant a deux voix ou plus, les choristes peuvent les écouter ensemble : leur voix en avant, tout le chœur, ou toutes les voix sauf la leur. Le site cale les voix en repérant leur première et leur dernière note ; une annonce parlée au début ne le gêne pas. Si des voix se décalent, corrigez les repères à la main : <span id="liens-calage"></span></p>
+      <p class="texte"><strong>Pour les prochains enregistrements</strong>, chantez toutes les voix sur le même métronome (dans un écouteur, au même tempo) : elles resteront ensemble du début à la fin.</p>
+    </div>
+    <div class="bloc">
       <h2 class="label">Corriger</h2>
       <p class="texte">Redéposez le fichier sous le même nom : le site garde le plus récent. Un fichier supprimé du Drive disparaît du site, et se récupère dans la corbeille du Drive pendant 30 jours.</p>
     </div>
     <div class="bloc" id="bloc-alertes" hidden>
-      <h2 class="label">Fichiers que le site n'a pas pu lire</h2>
+      <h2 class="label">À vérifier</h2>
       <ul class="alertes" id="alertes"></ul>
     </div>
     <p class="maj" id="chefs-maj"></p>
@@ -313,6 +404,7 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
 </div>
 
 <audio id="audio" preload="metadata"></audio>
+<audio id="audio-calage" preload="metadata"></audio>
 
 <script type="application/json" id="donnees">__DONNEES__</script>
 <script>
@@ -323,6 +415,12 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
   const STANDARD = ['sop', 'alt', 'ten', 'bas'];
   const NOMS = { sop: 'Sopranos', alt: 'Altos', ten: 'Ténors', bas: 'Basses' };
   const COURT = { 'Accompagnement': 'Accomp.' };
+  const PRESETS = [
+    ['seule', 'Ma voix seule', 'Ta voix, rien d’autre'],
+    ['avant', 'Ma voix en avant', 'Les autres voix plus bas'],
+    ['tout', 'Tout le chœur', 'Toutes les voix'],
+    ['sans', 'Sans ma voix', 'À toi de chanter ta voix'],
+  ];
 
   const lire = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
   const ecrire = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
@@ -335,24 +433,28 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
     enfants.flat().forEach(e => e != null && n.append(e));
     return n;
   };
-  const fleche = () => { const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); s.setAttribute('width', '20'); s.setAttribute('height', '20'); s.setAttribute('viewBox', '0 0 20 20'); s.setAttribute('class', 'chant-fleche'); s.setAttribute('aria-hidden', 'true'); s.innerHTML = '<path d="M7 4l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'; return s; };
+  const svg = (chemin, cls) => { const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('aria-hidden', 'true'); if (cls) s.setAttribute('class', cls); s.innerHTML = chemin; return s; };
+  const fleche = () => { const s = svg('<path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>', 'chant-fleche'); s.setAttribute('width', '20'); s.setAttribute('height', '20'); return s; };
+  const ICO_LIRE = '<path d="M8 5.5v13l11-6.5z" fill="currentColor"/>';
+  const ICO_PAUSE = '<path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" fill="currentColor"/>';
   const fmt = s => { if (!isFinite(s)) return '–:––'; s = Math.max(0, Math.floor(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+  const fmtFin = s => { s = Math.max(0, s); const m = Math.floor(s / 60); return m + ':' + (s - m * 60).toFixed(1).padStart(4, '0').replace('.', ','); };
   const dateCourte = iso => iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : '';
   const dateLongue = iso => iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
   const simple = t => (t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/œ/g, 'oe');
   const estNouveau = c => c.maj && (Date.now() - new Date(c.maj).getTime()) < D.nouveau_jours * 864e5;
+  const minuscule = n => n.charAt(0).toLowerCase() + n.slice(1);
 
   $('nom-choeur').textContent = D.nom;
   $('sous-titre').textContent = D.sous_titre || 'Répertoire';
   if (D.maj) $('pied-maj').textContent = 'Dernier ajout le ' + dateLongue(D.maj) + '.';
 
-  /* ---------- Accueil ---------- */
+  /* ================= Accueil ================= */
   let monPupitre = lire('pupitre');
   if (!STANDARD.includes(monPupitre)) monPupitre = null;
 
   function dessinerMonPupitre() {
-    const box = $('mon-pupitre');
-    box.replaceChildren(...STANDARD.map(v => {
+    $('mon-pupitre').replaceChildren(...STANDARD.map(v => {
       const b = el('button', { class: 'voix-btn', 'data-voix': v, 'aria-pressed': String(v === monPupitre) }, el('span', { class: 'pastille' }), NOMS[v]);
       b.addEventListener('click', () => { monPupitre = v; ecrire('pupitre', v); dessinerMonPupitre(); });
       return b;
@@ -405,16 +507,165 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
   $('cherche').hidden = D.chants.length <= 8;
   $('cherche').addEventListener('input', dessinerListe);
 
-  /* ---------- Lecteur ---------- */
-  const audio = $('audio');
-  const pos = $('position');
-  let chant = null, piste = null, glisse = false, vitesse = 1;
-  const boucle = { etat: 'off', a: 0, b: 0 };
+  /* ================= Correspondance des temps =================
+     Chaque piste recalée porte sa « carte » : des couples [temps dans la piste déposée, temps dans le mélange].
+     Entre deux points, le temps varie en ligne droite. */
+  function interpoler(points, t) {
+    if (t <= points[0][0]) return points[0][1] + (t - points[0][0]);
+    for (let i = 1; i < points.length; i++) {
+      const [a0, b0] = points[i - 1], [a1, b1] = points[i];
+      if (t <= a1) return b0 + (t - a0) * (b1 - b0) / (a1 - a0);
+    }
+    const [a, b] = points[points.length - 1];
+    return b + (t - a);
+  }
+  const versMix = (p, t) => p && p.mix ? interpoler(p.mix.carte, t) : t;
+  const versPiste = (p, t) => p && p.mix ? interpoler(p.mix.carte.map(([o, m]) => [m, o]), t) : t;
 
-  function appliquerVitesse() {
-    audio.defaultPlaybackRate = vitesse;
-    audio.playbackRate = vitesse;
-    audio.preservesPitch = true; audio.mozPreservesPitch = true; audio.webkitPreservesPitch = true;
+  /* ================= Moteur 1 : une piste (élément audio) ================= */
+  const A = {
+    audio: $('audio'),
+    src: null,
+    charger(src) {
+      if (this.src === src) return Promise.resolve(true);
+      this.src = src;
+      const a = this.audio;
+      return new Promise(res => {
+        const fin = ok => { a.removeEventListener('loadedmetadata', oui); a.removeEventListener('error', non); res(ok); };
+        const oui = () => fin(true), non = () => fin(false);
+        a.addEventListener('loadedmetadata', oui);
+        a.addEventListener('error', non);
+        a.src = src;
+        appliquerVitesseA();
+        a.load();
+      });
+    },
+    enLecture() { return !this.audio.paused; },
+    position() { return this.audio.currentTime || 0; },
+    duree() { return this.audio.duration; },
+    aller(t) { try { this.audio.currentTime = Math.max(0, t); } catch (e) {} },
+    jouer() { return this.audio.play().catch(() => {}); },
+    pause() { this.audio.pause(); },
+    vider() { this.audio.pause(); this.audio.removeAttribute('src'); this.audio.load(); this.src = null; },
+  };
+  function appliquerVitesseA() {
+    const a = A.audio;
+    a.defaultPlaybackRate = vitesse; a.playbackRate = vitesse;
+    a.preservesPitch = true; a.mozPreservesPitch = true; a.webkitPreservesPitch = true;
+  }
+
+  /* ================= Moteur 2 : plusieurs voix (Web Audio) =================
+     Toutes les voix sont décodées puis lancées au même instant : elles ne peuvent pas se décaler.
+     Les positions sont en « temps du mélange » à vitesse normale ; à 0,75×, la piste ralentie est lue. */
+  function decoder(ctx, donnees) {
+    return new Promise((res, rej) => { const p = ctx.decodeAudioData(donnees, res, rej); if (p && p.then) p.then(res, rej); });
+  }
+  const B = {
+    ctx: null, maitre: null, chant: null, pistes: [], gains: [], tampons: null, vChargee: null, v: 1,
+    sources: [], lecture: false, t0ctx: 0, t0pos: 0, pos: 0, ab: null, jeton: 0,
+    init() {
+      if (this.ctx) return;
+      const AC = window.AudioContext || window.webkitAudioContext;
+      try { this.ctx = new AC({ sampleRate: 24000, latencyHint: 'playback' }); } catch (e) { this.ctx = new AC(); }
+      try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
+      const comp = this.ctx.createDynamicsCompressor();
+      comp.threshold.value = -8; comp.ratio.value = 4;
+      this.maitre = this.ctx.createGain();
+      this.maitre.gain.value = 0.8;
+      this.maitre.connect(comp); comp.connect(this.ctx.destination);
+    },
+    choisir(chant) {
+      if (this.chant === chant) return;
+      this.vider();
+      this.init();
+      this.chant = chant;
+      this.pistes = chant.pistes.filter(p => p.mix);
+      this.gains = this.pistes.map(() => { const g = this.ctx.createGain(); g.connect(this.maitre); return g; });
+    },
+    async preparer(v, progres) {
+      if (this.tampons && this.vChargee === v) return true;
+      const jeton = ++this.jeton;
+      this.tampons = null;
+      let fait = 0;
+      progres(0, this.pistes.length);
+      const tampons = await Promise.all(this.pistes.map(async p => {
+        const r = await fetch(p.mix.src[String(v)]);
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const buf = await decoder(this.ctx, await r.arrayBuffer());
+        progres(++fait, this.pistes.length);
+        return buf;
+      }));
+      if (jeton !== this.jeton) return false;
+      this.tampons = tampons; this.vChargee = v; this.v = v;
+      return true;
+    },
+    pret() { return !!this.tampons; },
+    duree() { return this.chant && this.chant.mix ? this.chant.mix.duree : NaN; },
+    enLecture() { return this.lecture; },
+    position() {
+      if (!this.lecture) return this.pos;
+      let p = this.t0pos + Math.max(0, this.ctx.currentTime - this.t0ctx) * this.v;
+      if (this.ab && p >= this.ab[1]) p = this.ab[0] + (p - this.ab[1]) % (this.ab[1] - this.ab[0]);
+      return p;
+    },
+    demarrer() {
+      const ctx = this.ctx, v = this.v, quand = ctx.currentTime + 0.05;
+      if (this.ab && (this.pos < this.ab[0] || this.pos >= this.ab[1])) this.pos = this.ab[0];
+      this.sources = this.tampons.map((buf, i) => {
+        const s = ctx.createBufferSource();
+        s.buffer = buf;
+        if (this.ab) { s.loop = true; s.loopStart = this.ab[0] / v; s.loopEnd = this.ab[1] / v; }
+        s.connect(this.gains[i]);
+        s.start(quand, Math.min(this.pos / v, Math.max(0, buf.duration - 0.01)));
+        return s;
+      });
+      this.t0ctx = quand; this.t0pos = this.pos; this.lecture = true;
+    },
+    couper() { this.sources.forEach(s => { try { s.stop(); } catch (e) {} s.disconnect(); }); this.sources = []; },
+    async jouer() {
+      this.init();
+      if (this.ctx.state !== 'running') { try { await this.ctx.resume(); } catch (e) {} }
+      if (!this.tampons || this.lecture) return;
+      if (this.pos >= this.duree() - 0.1) this.pos = 0;
+      this.demarrer();
+    },
+    pause() { if (!this.lecture) return; this.pos = this.position(); this.couper(); this.lecture = false; },
+    aller(t) {
+      const enCours = this.lecture;
+      if (enCours) { this.couper(); this.lecture = false; }
+      this.pos = Math.max(0, Math.min(t, this.duree() - 0.05));
+      if (enCours) this.demarrer();
+    },
+    boucle(ab) {
+      const enCours = this.lecture, p = this.position();
+      if (enCours) { this.couper(); this.lecture = false; }
+      this.ab = ab; this.pos = p;
+      if (enCours) this.demarrer();
+    },
+    volumes(vals) { if (!this.ctx) return; vals.forEach((v, i) => this.gains[i] && this.gains[i].gain.setTargetAtTime(v, this.ctx.currentTime, 0.03)); },
+    vider() {
+      this.jeton++;
+      if (this.lecture) { this.couper(); this.lecture = false; }
+      this.gains.forEach(g => g.disconnect());
+      this.chant = null; this.pistes = []; this.gains = []; this.tampons = null; this.vChargee = null; this.pos = 0; this.ab = null;
+    },
+  };
+
+  /* ================= Page d'un chant : état ================= */
+  const pos = $('position');
+  let chant = null, piste = null, mode = 'seule', vitesse = 1, glisse = false, reglages = null, occupe = false;
+  const boucle = { etat: 'off', a: 0, b: 0 };
+  const moteur = () => mode === 'seule' ? A : B;
+  const dureeCourante = () => mode === 'seule' ? (isFinite(A.duree()) ? A.duree() : (piste && piste.duree) || NaN) : B.duree();
+
+  function volumesPour(m) {
+    return B.pistes.map((p, i) => {
+      const moi = p === piste;
+      if (m === 'avant') return moi ? 1 : 0.28;
+      if (m === 'sans') return moi ? 0 : 1;
+      if (m === 'perso' && reglages) return reglages[i];
+      return 1;
+    });
   }
 
   function dessinerOnglets() {
@@ -428,7 +679,7 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
     });
     chant.pistes.filter(p => !STANDARD.includes(p.voix)).forEach(p => boutons.push(bouton(p)));
     $('onglets').replaceChildren(...boutons);
-    $('onglets').hidden = chant.pistes.length < 2 && !avecStd;
+    $('bloc-voix').hidden = chant.pistes.length < 2 && !avecStd;
     function bouton(p) {
       const b = el('button', { class: 'onglet', 'data-voix': p.voix, 'aria-pressed': String(p === piste), title: p.nom }, el('span', { class: 'pastille' }), el('span', { text: COURT[p.nom] || p.nom }));
       b.addEventListener('click', () => choisirPiste(p));
@@ -436,55 +687,163 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
     }
   }
 
-  function choisirPiste(p) {
-    if (p === piste) return;
-    const t = audio.currentTime || 0;
-    const enLecture = piste && !audio.paused;
-    const memeChant = piste && chant.pistes.includes(piste);
-    piste = p;
-    $('lecteur').dataset.voix = p.voix;
-    $('piste-nom').textContent = p.nom;
-    $('piste-duree').textContent = p.duree ? fmt(p.duree) : '';
-    $('erreur').hidden = true;
-    dessinerOnglets();
-    audio.src = p.src;
-    appliquerVitesse();
-    audio.addEventListener('loadedmetadata', function reprise() {
-      audio.removeEventListener('loadedmetadata', reprise);
-      if (memeChant && t) { try { audio.currentTime = Math.min(t, (audio.duration || t) - 0.1); } catch (e) {} }
-      appliquerVitesse();
-      majTout();
-      if (enLecture) audio.play().catch(() => {});
-    });
-    audio.load();
-    majMedia();
-    majTout();
+  function dessinerMelange() {
+    $('bloc-melange').hidden = !chant.mix;
+    if (!chant.mix) return;
+    const mixable = !!(piste && piste.mix);
+    $('melange').replaceChildren(...PRESETS.map(([id, titre, sous]) => {
+      let detail = sous;
+      if (id === 'sans' && mixable) detail = 'Sans les ' + minuscule(piste.nom) + ', à toi de chanter';
+      const b = el('button', { class: 'preset', 'aria-pressed': String(id === mode), disabled: id !== 'seule' && !mixable }, el('strong', { text: titre }), el('span', { text: detail }));
+      b.addEventListener('click', () => changerMode(id));
+      return b;
+    }));
+    dessinerCurseurs();
   }
 
-  function majMedia() {
-    if (!('mediaSession' in navigator) || !piste) return;
+  function dessinerCurseurs() {
+    const voir = mode !== 'seule' && B.pistes.length > 0;
+    $('reglages').hidden = !voir;
+    if (!voir) return;
+    const vals = volumesPour(mode);
+    $('curseurs').replaceChildren(...B.pistes.map((p, i) => {
+      const id = 'vol-' + i;
+      const sortie = el('output', { for: id, text: Math.round(vals[i] * 100) + '' });
+      const r = el('input', { type: 'range', id, min: '0', max: '100', step: '1', value: String(Math.round(vals[i] * 100)), 'aria-label': 'Volume ' + p.nom });
+      r.addEventListener('input', () => {
+        if (mode !== 'perso') { reglages = volumesPour(mode); mode = 'perso'; majPresets(); majEntete(); }
+        reglages[i] = +r.value / 100;
+        sortie.textContent = r.value;
+        B.volumes(reglages);
+      });
+      return el('div', { class: 'curseur', 'data-voix': p.voix }, el('label', { for: id }, el('span', { class: 'pastille' }), el('span', { text: p.nom })), r, sortie);
+    }));
+  }
+  function majPresets() { $('melange').querySelectorAll('.preset').forEach((b, i) => b.setAttribute('aria-pressed', String(PRESETS[i][0] === mode))); }
+
+  function majEntete() {
+    const n = B.pistes.length;
+    let nom = piste ? piste.nom : '', info = '', voix = piste ? piste.voix : 'mix';
+    if (mode === 'seule') info = piste && piste.duree ? fmt(piste.duree) : '';
+    else if (mode === 'avant') info = 'en avant, avec les autres voix';
+    else if (mode === 'tout') { nom = 'Tout le chœur'; info = n + ' voix ensemble'; voix = 'mix'; }
+    else if (mode === 'sans') { nom = 'Sans les ' + minuscule(piste.nom); info = 'à toi de chanter ta voix'; }
+    else { nom = 'Mon réglage'; info = n + ' voix ensemble'; voix = 'mix'; }
+    $('piste-nom').textContent = nom;
+    $('piste-info').textContent = info;
+    $('lecteur').dataset.voix = voix;
+  }
+
+  function chargementUI(fait, total) {
+    $('chargement').hidden = false;
+    $('chargement-txt').textContent = 'Chargement des voix (' + fait + '/' + total + ')';
+    $('chargement-barre').style.width = (total ? fait / total * 100 : 0) + '%';
+  }
+  function finChargement() { $('chargement').hidden = true; }
+  function erreur(texte) { $('erreur').textContent = texte; $('erreur').hidden = !texte; }
+
+  async function preparerMix() {
+    B.choisir(chant);
+    occupe = true; majBoutonLecture();
     try {
-      navigator.mediaSession.metadata = new MediaMetadata({ title: chant.titre + ' · ' + piste.nom, artist: chant.groupe || D.nom, album: D.nom });
-    } catch (e) {}
+      const ok = await B.preparer(vitesse, chargementUI);
+      return ok;
+    } catch (e) {
+      erreur('Les voix n’ont pas pu se charger. Vérifie ta connexion, puis réessaie.');
+      return false;
+    } finally {
+      occupe = false; finChargement(); majBoutonLecture();
+    }
   }
-  if ('mediaSession' in navigator) {
-    const h = (a, f) => { try { navigator.mediaSession.setActionHandler(a, f); } catch (e) {} };
-    h('play', () => audio.play());
-    h('pause', () => audio.pause());
-    h('seekbackward', () => saut(-5));
-    h('seekforward', () => saut(5));
-    h('seekto', d => { audio.currentTime = d.seekTime; majTout(); });
+
+  async function changerMode(m) {
+    if (m === mode || occupe) return;
+    erreur('');
+    const ancien = moteur();
+    const changeMoteur = (mode === 'seule') !== (m === 'seule');
+    if (!changeMoteur) { mode = m; B.volumes(volumesPour(m)); majPresets(); majEntete(); dessinerCurseurs(); return; }
+    const conv = m === 'seule' ? (x => versPiste(piste, x)) : (x => versMix(piste, x));
+    if (m !== 'seule') {   // la voix seule continue pendant le chargement des autres
+      const ok = await preparerMix();
+      if (!ok) return;
+    }
+    const jouait = ancien.enLecture(), t = ancien.position();
+    ancien.pause();
+    mode = m;
+    if (boucle.etat !== 'off') { boucle.a = conv(boucle.a); boucle.b = conv(boucle.b); }
+    if (m === 'seule') {
+      await A.charger(piste.src);
+      A.aller(conv(t));
+    } else {
+      B.volumes(volumesPour(m));
+      B.boucle(boucle.etat === 'actif' ? [boucle.a, boucle.b] : null);
+      B.aller(conv(t));
+    }
+    majPresets(); majEntete(); dessinerCurseurs(); majBoucleUI(); majTout();
+    if (jouait) await lancer();
   }
+
+  async function choisirPiste(p) {
+    if (p === piste || occupe) return;
+    erreur('');
+    if (mode !== 'seule') {
+      if (p.mix) { piste = p; B.volumes(volumesPour(mode)); dessinerOnglets(); dessinerMelange(); majEntete(); return; }
+      await changerMode('seule');
+    }
+    const ancienne = piste, jouait = A.enLecture(), t = A.position();
+    const conv = x => (ancienne && ancienne.mix && p.mix) ? versPiste(p, versMix(ancienne, x)) : x;
+    if (boucle.etat !== 'off') { boucle.a = conv(boucle.a); boucle.b = conv(boucle.b); }
+    piste = p;
+    dessinerOnglets(); dessinerMelange(); majEntete(); majBoucleUI();
+    A.pause();
+    const ok = await A.charger(p.src);
+    if (!ok) { erreur('Cette piste ne se lit pas. Recharge la page ; si ça continue, préviens un chef de chœur.'); return; }
+    if (ancienne && t) A.aller(Math.min(conv(t), (A.duree() || t) - 0.1));
+    majTout(); majMedia();
+    if (jouait) await lancer();
+  }
+
+  /* ================= Lecture, position, boucle ================= */
+  let anime = false, verrou = null;
+  function animer() {
+    const m = moteur(), p = m.position(), d = dureeCourante();
+    if (mode === 'seule' && boucle.etat === 'actif' && p >= boucle.b) A.aller(boucle.a);
+    if (mode !== 'seule' && B.lecture && !B.ab && p >= d - 0.02) { B.pause(); B.pos = d; majBoutonLecture(); liberer(); }
+    majTout();
+    if (m.enLecture()) requestAnimationFrame(animer); else anime = false;
+  }
+  function lancerAnimation() { if (!anime) { anime = true; requestAnimationFrame(animer); } }
+
+  async function garderEcran() {
+    if (mode === 'seule' || verrou || !('wakeLock' in navigator)) return;
+    try { verrou = await navigator.wakeLock.request('screen'); verrou.addEventListener('release', () => { verrou = null; }); } catch (e) {}
+  }
+  function liberer() { if (verrou) { verrou.release().catch(() => {}); verrou = null; } }
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && B.lecture) garderEcran(); });
+
+  async function lancer() {
+    if (mode === 'seule') {
+      if (boucle.etat === 'actif' && (A.position() < boucle.a || A.position() >= boucle.b)) A.aller(boucle.a);
+      await A.jouer();
+    } else {
+      await B.jouer();
+      garderEcran();
+    }
+    majBoutonLecture(); lancerAnimation();
+  }
+  function arreter() { moteur().pause(); liberer(); majBoutonLecture(); majTout(); }
 
   function majBoutonLecture() {
-    const joue = !audio.paused;
+    const joue = moteur().enLecture();
     $('ico-lire').hidden = joue;
     $('ico-pause').hidden = !joue;
     $('lecture').setAttribute('aria-label', joue ? 'Mettre en pause' : 'Lire');
+    $('lecture').disabled = occupe;
+    if ('mediaSession' in navigator) { try { navigator.mediaSession.playbackState = joue ? 'playing' : 'paused'; } catch (e) {} }
   }
 
   function majZone() {
-    const d = audio.duration, zone = $('zone');
+    const d = dureeCourante(), zone = $('zone');
     if (boucle.etat === 'off' || !isFinite(d) || !d) { zone.hidden = true; return; }
     zone.hidden = false;
     zone.classList.toggle('arme', boucle.etat === 'arme');
@@ -507,109 +866,116 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
       stop.hidden = false; stop.textContent = 'Arrêter la boucle';
       aide.textContent = 'Le passage de ' + fmt(boucle.a) + ' à ' + fmt(boucle.b) + ' se répète. Ralentis-le si besoin.';
     }
+    if (mode !== 'seule') aide.textContent += ' L’écran reste allumé pendant l’écoute à plusieurs voix.';
     majZone();
   }
 
   function majTout() {
-    const d = audio.duration, t = audio.currentTime || 0;
+    const d = dureeCourante(), t = moteur().position();
     if (isFinite(d) && d > 0) {
       pos.max = d.toFixed(2);
       if (!glisse) pos.value = t;
-      $('fait').style.width = (t / d * 100) + '%';
+      $('fait').style.width = Math.min(100, t / d * 100) + '%';
       $('t-total').textContent = fmt(d);
     } else {
       $('fait').style.width = '0';
-      $('t-total').textContent = piste && piste.duree ? fmt(piste.duree) : '–:––';
+      $('t-total').textContent = '–:––';
       if (!glisse) pos.value = 0;
     }
     $('t-courant').textContent = fmt(glisse ? +pos.value : t);
     majZone();
   }
 
-  function verifierBoucle() {
-    if (boucle.etat === 'actif' && audio.currentTime >= boucle.b) audio.currentTime = boucle.a;
-  }
-  function animer() {
-    verifierBoucle();
-    majTout();
-    if (!audio.paused) requestAnimationFrame(animer);
-  }
-
-  audio.addEventListener('play', () => { majBoutonLecture(); requestAnimationFrame(animer); });
-  audio.addEventListener('pause', majBoutonLecture);
-  audio.addEventListener('ended', () => { majBoutonLecture(); majTout(); });
-  audio.addEventListener('loadedmetadata', majTout);
-  audio.addEventListener('timeupdate', () => { verifierBoucle(); if (audio.paused || document.hidden) majTout(); });
-  audio.addEventListener('error', () => { if (audio.getAttribute('src')) $('erreur').hidden = false; });
-
-  $('lecture').addEventListener('click', () => {
-    if (audio.paused) {
-      if (boucle.etat === 'actif' && (audio.currentTime < boucle.a || audio.currentTime >= boucle.b)) audio.currentTime = boucle.a;
-      audio.play().catch(() => {});
-    } else audio.pause();
+  A.audio.addEventListener('play', () => { if (mode === 'seule') { majBoutonLecture(); lancerAnimation(); } });
+  A.audio.addEventListener('pause', () => { if (mode === 'seule') majBoutonLecture(); });
+  A.audio.addEventListener('ended', () => { if (mode === 'seule') { majBoutonLecture(); majTout(); } });
+  A.audio.addEventListener('loadedmetadata', () => { if (mode === 'seule') majTout(); });
+  A.audio.addEventListener('timeupdate', () => {
+    if (mode !== 'seule') return;
+    if (boucle.etat === 'actif' && A.position() >= boucle.b) A.aller(boucle.a);
+    if (A.audio.paused || document.hidden) majTout();
   });
+
+  $('lecture').addEventListener('click', () => { if (occupe) return; if (moteur().enLecture()) arreter(); else lancer(); });
   function saut(dt) {
-    const d = audio.duration || 0;
-    audio.currentTime = Math.min(Math.max(0, (audio.currentTime || 0) + dt), d ? d - 0.05 : 0);
+    const d = dureeCourante() || 0;
+    moteur().aller(Math.min(Math.max(0, moteur().position() + dt), d ? d - 0.05 : 0));
     majTout();
   }
   $('recul').addEventListener('click', () => saut(-5));
   $('avance').addEventListener('click', () => saut(5));
   pos.addEventListener('input', () => { glisse = true; majTout(); });
-  pos.addEventListener('change', () => { audio.currentTime = +pos.value; glisse = false; majTout(); });
+  pos.addEventListener('change', () => { moteur().aller(+pos.value); glisse = false; majTout(); });
 
-  $('vitesse').addEventListener('click', e => {
+  $('vitesse').addEventListener('click', async e => {
     const b = e.target.closest('button[data-v]');
-    if (!b) return;
-    vitesse = +b.dataset.v;
-    appliquerVitesse();
+    if (!b || occupe) return;
+    const v = +b.dataset.v;
+    if (v === vitesse) return;
+    vitesse = v;
     $('vitesse').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    appliquerVitesseA();
+    if (mode !== 'seule' && B.chant) {
+      const jouait = B.enLecture(), t = B.position();
+      B.pause();
+      const ok = await preparerMix();
+      if (ok) { B.aller(t); if (jouait) lancer(); }
+    }
   });
 
   $('boucle').addEventListener('click', () => {
-    const t = audio.currentTime || 0;
+    const t = moteur().position();
     if (boucle.etat === 'off') { boucle.a = t; boucle.etat = 'arme'; }
     else if (boucle.etat === 'arme') {
       if (t <= boucle.a + 0.5) { $('boucle-aide').textContent = 'La fin doit venir après le début (' + fmt(boucle.a) + '). Laisse jouer, puis touche à nouveau.'; return; }
-      boucle.b = t; boucle.etat = 'actif'; audio.currentTime = boucle.a;
+      boucle.b = t; boucle.etat = 'actif';
+      if (mode === 'seule') A.aller(boucle.a); else { B.boucle([boucle.a, boucle.b]); B.aller(boucle.a); }
     }
     majBoucleUI();
   });
-  $('boucle-stop').addEventListener('click', () => { boucle.etat = 'off'; majBoucleUI(); });
+  $('boucle-stop').addEventListener('click', () => { boucle.etat = 'off'; if (mode !== 'seule') B.boucle(null); majBoucleUI(); });
 
   document.addEventListener('keydown', e => {
     if ($('vue-chant').hidden || !piste || e.metaKey || e.ctrlKey || e.altKey) return;
     if (e.target.closest('input, textarea, select')) return;
-    if (e.key === ' ' && !e.target.closest('button')) { e.preventDefault(); $('lecture').click(); }
+    if (e.key === ' ' && !e.target.closest('button, summary')) { e.preventDefault(); $('lecture').click(); }
     else if (e.key === 'ArrowLeft') { e.preventDefault(); saut(-5); }
     else if (e.key === 'ArrowRight') { e.preventDefault(); saut(5); }
   });
 
-  /* ---------- Page d'un chant ---------- */
+  function majMedia() {
+    if (!('mediaSession' in navigator) || !piste) return;
+    try { navigator.mediaSession.metadata = new MediaMetadata({ title: chant.titre + ' · ' + piste.nom, artist: chant.groupe || D.nom, album: D.nom }); } catch (e) {}
+  }
+  if ('mediaSession' in navigator) {
+    const h = (a, f) => { try { navigator.mediaSession.setActionHandler(a, f); } catch (e) {} };
+    h('play', () => lancer());
+    h('pause', () => arreter());
+    h('seekbackward', () => saut(-5));
+    h('seekforward', () => saut(5));
+    h('seekto', d => { moteur().aller(d.seekTime); majTout(); });
+  }
+
+  /* ================= Ouvrir un chant ================= */
   function ouvrirChant(c) {
-    if (chant !== c) {
-      audio.pause();
-      boucle.etat = 'off';
-      majBoucleUI();
-      chant = c;
-      piste = null;
-      $('chant-groupe').textContent = c.groupe;
-      $('chant-groupe').hidden = !c.groupe;
-      $('chant-titre').textContent = c.titre;
-      document.title = c.titre + ' · ' + D.nom;
-      $('chant-maj').textContent = 'Mis à jour le ' + dateLongue(c.maj) + '.';
-      const aAudio = c.pistes.length > 0;
-      $('lecteur').hidden = !aAudio;
-      $('onglets').hidden = !aAudio;
-      $('sans-audio').hidden = aAudio;
-      if (aAudio) {
-        choisirPiste(c.pistes.find(p => p.voix === monPupitre) || c.pistes[0]);
-      } else {
-        audio.removeAttribute('src');
-        audio.load();
-      }
-      dessinerPartitions(c);
-    }
+    if (chant === c) return;
+    A.pause(); B.vider(); liberer();
+    boucle.etat = 'off';
+    chant = c; piste = null; mode = 'seule'; reglages = null;
+    $('chant-groupe').textContent = c.groupe;
+    $('chant-groupe').hidden = !c.groupe;
+    $('chant-titre').textContent = c.titre;
+    $('chant-maj').textContent = 'Mis à jour le ' + dateLongue(c.maj) + '.';
+    $('lien-calage').hidden = !c.mix;
+    $('lien-calage').href = '#calage-' + c.slug;
+    erreur('');
+    const aAudio = c.pistes.length > 0;
+    $('lecteur').hidden = !aAudio;
+    $('sans-audio').hidden = aAudio;
+    majBoucleUI();
+    if (aAudio) choisirPiste(c.pistes.find(p => p.voix === monPupitre) || c.pistes[0]);
+    else { A.vider(); $('bloc-voix').hidden = true; $('bloc-melange').hidden = true; }
+    dessinerPartitions(c);
   }
 
   function dessinerPartitions(c) {
@@ -631,27 +997,126 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
     }));
   }
 
-  /* ---------- Page des chefs ---------- */
+  /* ================= Calage (chefs de chœur) ================= */
+  const AC = $('audio-calage');
+  const cal = { chant: null, pistes: [], temps: [], active: -1 };
+
+  function ouvrirCalage(c) {
+    A.pause(); B.pause(); liberer();
+    if (cal.chant !== c) {
+      AC.pause(); AC.removeAttribute('src');
+      cal.chant = c;
+      cal.pistes = c.pistes.filter(p => p.mix);
+      cal.temps = cal.pistes.map(p => (p.reperes || [0, p.duree || 0]).slice());
+      cal.active = -1;
+    }
+    $('calage-retour').href = '#c-' + c.slug;
+    $('calage-retour-txt').textContent = c.titre;
+    const manuel = cal.pistes.some(p => !p.auto);
+    const douteux = cal.pistes.filter(p => p.auto && p.sur === false).map(p => p.nom);
+    $('calage-etat').textContent = (manuel ? 'Repères notés par un chef de chœur.' : 'Repères trouvés automatiquement : première et dernière note de chaque voix.')
+      + (douteux.length ? ' À vérifier en priorité : ' + douteux.join(', ') + '.' : '');
+    dessinerCalage();
+  }
+
+  function nomRepere(k, n) { return k === 0 ? 'Première note' : k === n - 1 ? 'Dernière note' : 'Repère ' + (k + 1); }
+
+  function dessinerCalage() {
+    const n = cal.temps[0] ? cal.temps[0].length : 0;
+    $('cartes-calage').replaceChildren(...cal.pistes.map((p, i) => {
+      const actif = cal.active === i;
+      const joue = actif && !AC.paused;
+      const bLire = el('button', { class: 'rond' + (joue ? ' actif' : ''), type: 'button', 'aria-label': joue ? 'Pause' : 'Écouter ' + p.nom }, svg(joue ? ICO_PAUSE : ICO_LIRE));
+      bLire.addEventListener('click', () => { if (joue) AC.pause(); else ecouterCalage(i, actif ? AC.currentTime : 0); });
+      const chrono = el('span', { class: 'chrono', id: 'chrono-' + i, text: actif ? fmtFin(AC.currentTime) : '0:00,0' });
+      const bm2 = el('button', { class: 'bouton petit discret', type: 'button', text: '−2 s', disabled: !actif });
+      const bp2 = el('button', { class: 'bouton petit discret', type: 'button', text: '+2 s', disabled: !actif });
+      bm2.addEventListener('click', () => { AC.currentTime = Math.max(0, AC.currentTime - 2); majChrono(); });
+      bp2.addEventListener('click', () => { AC.currentTime = AC.currentTime + 2; majChrono(); });
+      const ordreOk = cal.temps[i].every((t, k, a) => k === 0 || t - a[k - 1] >= 0.5);
+      const reperes = el('ol', { class: 'reperes' }, cal.temps[i].map((t, k) => {
+        const bEcouter = el('button', { class: 'bouton petit', type: 'button', text: 'Écouter' });
+        bEcouter.addEventListener('click', () => ecouterCalage(i, Math.max(0, t - 1.5)));
+        const bIci = el('button', { class: 'bouton petit', type: 'button', text: 'Placer ici', disabled: !actif, title: actif ? '' : 'Lance d’abord l’écoute de cette voix' });
+        bIci.addEventListener('click', () => { cal.temps[i][k] = Math.round(AC.currentTime * 10) / 10; dessinerCalage(); });
+        const bMoins = el('button', { class: 'bouton petit discret', type: 'button', text: '−0,1', 'aria-label': 'Reculer le repère de 0,1 seconde' });
+        const bPlus = el('button', { class: 'bouton petit discret', type: 'button', text: '+0,1', 'aria-label': 'Avancer le repère de 0,1 seconde' });
+        bMoins.addEventListener('click', () => { cal.temps[i][k] = Math.max(0, Math.round((t - 0.1) * 10) / 10); dessinerCalage(); });
+        bPlus.addEventListener('click', () => { cal.temps[i][k] = Math.round((t + 0.1) * 10) / 10; dessinerCalage(); });
+        const bRetirer = (k > 0 && k < n - 1) ? el('button', { class: 'bouton petit discret', type: 'button', text: 'Retirer', 'aria-label': 'Retirer ce repère pour toutes les voix' }) : null;
+        if (bRetirer) bRetirer.addEventListener('click', () => { cal.temps.forEach(ts => ts.splice(k, 1)); dessinerCalage(); });
+        return el('li', { class: 'repere' },
+          el('span', { class: 'repere-nom' }, nomRepere(k, n), el('code', { text: fmtFin(t) })),
+          el('span', { class: 'repere-btns' }, bEcouter, bIci, bMoins, bPlus, bRetirer));
+      }));
+      return el('div', { class: 'carte-calage', 'data-voix': p.voix },
+        el('div', { class: 'carte-tete' }, el('span', { class: 'pastille' }), el('strong', { text: p.nom }),
+          p.auto ? el('span', { class: 'badge doux', text: 'automatique' }) : el('span', { class: 'badge doux', text: 'noté' }),
+          p.auto && p.sur === false ? el('span', { class: 'badge alerte', text: 'à vérifier' }) : null),
+        el('div', { class: 'mini' }, bLire, chrono, bm2, bp2),
+        reperes,
+        ordreOk ? null : el('p', { class: 'erreur', text: 'Les repères doivent se suivre, à plus d’une demi-seconde d’écart.' }));
+    }));
+    $('calage-texte').textContent = texteCalage();
+  }
+
+  function texteCalage() {
+    return cal.pistes.map((p, i) => p.nom + ' : ' + cal.temps[i].map(fmtFin).join(' ; ')).join('\n');
+  }
+
+  async function ecouterCalage(i, t) {
+    if (cal.active !== i) {
+      cal.active = i;
+      AC.src = cal.pistes[i].src;
+      await new Promise(res => { AC.addEventListener('loadedmetadata', res, { once: true }); AC.load(); });
+    }
+    AC.currentTime = t;
+    AC.play().catch(() => {});
+  }
+  function majChrono() { const c = $('chrono-' + cal.active); if (c) c.textContent = fmtFin(AC.currentTime); }
+  AC.addEventListener('timeupdate', majChrono);
+  AC.addEventListener('seeked', majChrono);
+  AC.addEventListener('play', dessinerCalage);
+  AC.addEventListener('pause', dessinerCalage);
+
+  $('ajout-repere').addEventListener('click', () => {
+    cal.temps.forEach(ts => { const n = ts.length; ts.splice(n - 1, 0, Math.round((ts[n - 2] + ts[n - 1]) / 2 * 10) / 10); });
+    dessinerCalage();
+  });
+  $('copier-calage').addEventListener('click', async () => {
+    const texte = texteCalage();
+    try { await navigator.clipboard.writeText(texte); }
+    catch (e) { const r = document.createRange(); r.selectNodeContents($('calage-texte')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+    $('copie-ok').hidden = false; setTimeout(() => { $('copie-ok').hidden = true; }, 2500);
+  });
+
+  /* ================= Page des chefs ================= */
   function dessinerChefs() {
     const a = D.alertes || [];
     $('bloc-alertes').hidden = !a.length;
     $('alertes').replaceChildren(...a.map(x => el('li', {}, (x.chant ? x.chant + ' / ' : '') + x.fichier, el('span', { text: x.raison }))));
+    const avecMix = D.chants.filter(c => c.mix);
+    $('liens-calage').replaceChildren(...(avecMix.length
+      ? avecMix.flatMap((c, i) => [i ? ', ' : '', el('a', { href: '#calage-' + c.slug, text: c.titre })]).concat('.')
+      : ['le lien apparaîtra sur la page de chaque chant.']));
     $('chefs-maj').textContent = D.maj ? 'Dernier ajout lu dans le Drive : le ' + dateLongue(D.maj) + '.' : '';
   }
 
-  /* ---------- Navigation ---------- */
+  /* ================= Navigation ================= */
   function afficher() {
     const h = decodeURIComponent(location.hash.slice(1));
     const c = h.startsWith('c-') ? D.chants.find(x => x.slug === h.slice(2)) : null;
-    const vue = c ? 'chant' : h === 'chefs' ? 'chefs' : 'accueil';
-    $('vue-accueil').hidden = vue !== 'accueil';
-    $('vue-chant').hidden = vue !== 'chant';
-    $('vue-chefs').hidden = vue !== 'chefs';
+    const cc = h.startsWith('calage-') ? D.chants.find(x => x.slug === h.slice(7) && x.mix) : null;
+    const vue = c ? 'chant' : cc ? 'calage' : h === 'chefs' ? 'chefs' : 'accueil';
+    ['accueil', 'chant', 'calage', 'chefs'].forEach(v => { $('vue-' + v).hidden = v !== vue; });
+    if (vue !== 'calage') AC.pause();
     if (vue === 'chant') ouvrirChant(c);
-    else { audio.pause(); document.title = D.nom + ' · Répertoire'; }
+    else { A.pause(); B.pause(); liberer(); majBoutonLecture(); document.title = D.nom + ' · Répertoire'; }
+    if (vue === 'chant') document.title = c.titre + ' · ' + D.nom;
+    if (vue === 'calage') ouvrirCalage(cc);
     if (vue === 'accueil') { dessinerMonPupitre(); dessinerListe(); }
-    $('pied').hidden = vue !== 'accueil' || !D.maj;
     if (vue === 'chefs') dessinerChefs();
+    $('pied').hidden = vue !== 'accueil' || !D.maj;
     window.scrollTo(0, 0);
   }
 

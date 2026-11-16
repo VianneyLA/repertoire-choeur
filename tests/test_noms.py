@@ -3,7 +3,8 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from construire import classer_audio, garder_le_plus_recent, lire_nom_dossier, nom_affiche, type_fichier  # noqa: E402
+from construire import (classer_audio, ecrire_temps, garder_le_plus_recent, lire_calage, lire_nom_dossier,  # noqa: E402
+                        nom_affiche, plan_de_calage, souci_de_calage, type_fichier)
 
 
 class Voix(unittest.TestCase):
@@ -51,6 +52,25 @@ class Types(unittest.TestCase):
         self.assertEqual(type_fichier(f("Page 1.HEIC")), "image")
         self.assertEqual(type_fichier(f("Notes", "application/vnd.google-apps.document")), "google")
         self.assertIsNone(type_fichier(f("notes.docx")))
+        self.assertEqual(type_fichier(f("Calage", "application/vnd.google-apps.document")), "calage")
+        self.assertEqual(type_fichier(f("calage.txt")), "calage")
+
+
+class Calage(unittest.TestCase):
+    def test_lecture(self):
+        texte = "Repères du chœur infernal\nSopranos : 0:12,4 ; 1:05,0 ; 2:38,0\nAltos: 7,8 ; 58.9 ; 2:29,5\nBasses 2 : 0:09 ; 1:00 ; 2:30\n"
+        self.assertEqual(lire_calage(texte), [("Sopranos", [12.4, 65.0, 158.0]), ("Altos", [7.8, 58.9, 149.5]),
+                                              ("Basses 2", [9.0, 60.0, 150.0])])
+
+    def test_ecriture(self):
+        self.assertEqual(ecrire_temps(158.04), "2:38,0")
+        self.assertEqual(ecrire_temps(7.85), "0:07,8")
+
+    def test_positions_communes(self):
+        commun = plan_de_calage([[10, 110], [5, 95], [0, 105]])
+        self.assertEqual(commun, [0, 100])
+        self.assertIsNone(souci_de_calage([5, 95], commun))
+        self.assertIn("plus lente", souci_de_calage([0, 140], commun))
 
 
 class Dossiers(unittest.TestCase):
