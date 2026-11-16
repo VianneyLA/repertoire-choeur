@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from construire import classer_audio, garder_le_plus_recent, lire_nom_dossier, nom_affiche  # noqa: E402
+from construire import classer_audio, garder_le_plus_recent, lire_nom_dossier, nom_affiche, type_fichier  # noqa: E402
 
 
 class Voix(unittest.TestCase):
@@ -39,6 +39,18 @@ class Voix(unittest.TestCase):
 
     def test_copie_de_navigateur(self):
         self.assertEqual(classer_audio("Altos (1).mp3"), ("alt", None))
+
+
+class Types(unittest.TestCase):
+    def test_types(self):
+        f = lambda nom, mime="": {"nom": nom, "mime": mime}
+        self.assertEqual(type_fichier(f("Basses.mpeg", "video/mpeg")), "audio")
+        self.assertEqual(type_fichier(f("Altos.mpeg", "audio/mpeg")), "audio")
+        self.assertEqual(type_fichier(f("Répétition", "video/mp4")), "audio")
+        self.assertEqual(type_fichier(f("Partition.pdf")), "pdf")
+        self.assertEqual(type_fichier(f("Page 1.HEIC")), "image")
+        self.assertEqual(type_fichier(f("Notes", "application/vnd.google-apps.document")), "google")
+        self.assertIsNone(type_fichier(f("notes.docx")))
 
 
 class Dossiers(unittest.TestCase):

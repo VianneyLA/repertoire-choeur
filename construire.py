@@ -37,8 +37,9 @@ CONFIG = RACINE / "site.json"
 # À augmenter pour reconvertir tous les fichiers (si la façon de convertir change).
 VERSION_CONVERSION = "1"
 
-EXT_AUDIO = {".mp3", ".m4a", ".aac", ".opus", ".ogg", ".oga", ".wav", ".flac", ".amr", ".wma",
-             ".webm", ".mp4", ".3gp", ".aif", ".aiff", ".caf"}
+# Une vidéo (répétition filmée, fichier .mpeg) donne sa piste son.
+EXT_AUDIO = {".mp3", ".mpeg", ".mpga", ".mpg", ".m4a", ".aac", ".opus", ".ogg", ".oga", ".wav", ".flac", ".amr",
+             ".wma", ".webm", ".mp4", ".m4v", ".mov", ".3gp", ".aif", ".aiff", ".caf"}
 EXT_IMAGE = {".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif"}
 EXT_PDF = {".pdf"}
 IGNORES = {".ds_store", "desktop.ini", "thumbs.db"}
@@ -124,7 +125,7 @@ def type_fichier(f: dict) -> str | None:
     mime = f.get("mime") or ""
     if ext in EXT_PDF or mime == "application/pdf":
         return "pdf"
-    if ext in EXT_AUDIO or mime.startswith("audio/"):
+    if ext in EXT_AUDIO or mime.startswith(("audio/", "video/")):
         return "audio"
     if ext in EXT_IMAGE or mime.startswith("image/"):
         return "image"
