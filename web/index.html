@@ -317,6 +317,7 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
       <details class="reglages" id="reglages" hidden>
         <summary>Régler chaque voix</summary>
         <div class="curseurs" id="curseurs"></div>
+        <p class="aide" style="margin-top:12px">Une voix commence par une annonce ou se décale ? <a id="lien-calage-2" href="#">Couper et caler les voix</a> (chefs de chœur).</p>
       </details>
     </section>
 
@@ -327,7 +328,7 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
     <div class="vue" id="partitions"></div>
     <div class="bloc-serre">
       <p class="maj" id="chant-maj"></p>
-      <a class="lien-discret" id="lien-calage" href="#" hidden>Les voix ne partent pas ensemble ? Caler les voix (chefs de chœur)</a>
+      <a class="lien-discret" id="lien-calage" href="#" hidden>Une voix commence mal ou se décale des autres ? Couper et caler les voix (chefs de chœur)</a>
     </div>
   </main>
 
@@ -336,13 +337,15 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
     <a class="retour" id="calage-retour" href="#"><svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true"><path d="M13 4l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="calage-retour-txt"></span></a>
     <div>
       <p class="eyebrow">Pour les chefs de chœur</p>
-      <h1>Caler les voix</h1>
+      <h1 id="calage-titre">Couper et caler les voix</h1>
     </div>
-    <p class="texte">Pour écouter les voix ensemble, le site fait coïncider des repères : la première note chantée, la dernière, et si besoin des repères au milieu, par exemple une attaque que toutes les voix font ensemble. Entre deux repères, il accélère ou ralentit un peu chaque voix, sans changer la hauteur.</p>
+    <p class="texte"><strong>Début du chant</strong> : la première note chantée. Tout ce qui précède (l'annonce, le décompte) est coupé à l'écoute. Écoutez un peu avant, puis touchez « Placer ici » au moment où la voix attaque.</p>
+    <p class="texte"><strong>Pour écouter les voix ensemble</strong>, le site fait coïncider les débuts, les fins et, si besoin, des repères au milieu : une attaque que toutes les voix font ensemble. Entre deux repères, il accélère ou ralentit un peu chaque voix, sans changer la hauteur.</p>
     <p class="aide" id="calage-etat"></p>
     <div class="cartes-calage" id="cartes-calage"></div>
     <div class="partition-actions">
       <button class="bouton" id="ajout-repere" type="button">Ajouter un repère au milieu</button>
+      <span class="aide" id="aide-ajout"></span>
     </div>
     <section class="bloc">
       <h2 class="label">Texte à déposer dans le Drive</h2>
@@ -384,7 +387,7 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
     </div>
     <div class="bloc">
       <h2 class="label">Écouter les voix ensemble</h2>
-      <p class="texte">Dès qu'un chant a deux voix ou plus, les choristes peuvent les écouter ensemble : leur voix en avant, tout le chœur, ou toutes les voix sauf la leur. Le site cale les voix en repérant leur première et leur dernière note ; une annonce parlée au début ne le gêne pas. Si des voix se décalent, corrigez les repères à la main : <span id="liens-calage"></span></p>
+      <p class="texte">Dès qu'un chant a deux voix ou plus, les choristes peuvent les écouter ensemble : leur voix en avant, tout le chœur, ou toutes les voix sauf la leur. Le site repère où commence et finit le chant dans chaque voix, coupe l'annonce parlée du début, puis cale les voix entre elles. S'il se trompe, ou si des voix se décalent, corrigez les repères à la main : <span id="liens-calage"></span></p>
       <p class="texte"><strong>Pour les prochains enregistrements</strong>, chantez toutes les voix sur le même métronome (dans un écouteur, au même tempo) : elles resteront ensemble du début à la fin.</p>
     </div>
     <div class="bloc">
@@ -519,19 +522,26 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
     const [a, b] = points[points.length - 1];
     return b + (t - a);
   }
-  const versMix = (p, t) => p && p.mix ? interpoler(p.mix.carte, t) : t;
-  const versPiste = (p, t) => p && p.mix ? interpoler(p.mix.carte.map(([o, m]) => [m, o]), t) : t;
+  const coupe = p => (p && p.coupe) || 0;
+  const versMix = (p, t) => p && p.mix ? interpoler(p.mix.carte, t + coupe(p)) : t;
+  const versPiste = (p, t) => p && p.mix ? interpoler(p.mix.carte.map(([o, m]) => [m, o]), t) - coupe(p) : t;
 
   /* ================= Moteur 1 : une piste (élément audio) ================= */
   const A = {
     audio: $('audio'),
     src: null,
-    charger(src) {
+    coupe: 0,
+    charger(src, coupe) {
       if (this.src === src) return Promise.resolve(true);
       this.src = src;
+      this.coupe = coupe || 0;
       const a = this.audio;
       return new Promise(res => {
-        const fin = ok => { a.removeEventListener('loadedmetadata', oui); a.removeEventListener('error', non); res(ok); };
+        const fin = ok => {
+          a.removeEventListener('loadedmetadata', oui); a.removeEventListener('error', non);
+          if (ok) this.aller(0);
+          res(ok);
+        };
         const oui = () => fin(true), non = () => fin(false);
         a.addEventListener('loadedmetadata', oui);
         a.addEventListener('error', non);
@@ -541,12 +551,12 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
       });
     },
     enLecture() { return !this.audio.paused; },
-    position() { return this.audio.currentTime || 0; },
-    duree() { return this.audio.duration; },
-    aller(t) { try { this.audio.currentTime = Math.max(0, t); } catch (e) {} },
+    position() { return Math.max(0, (this.audio.currentTime || 0) - this.coupe); },
+    duree() { return this.audio.duration - this.coupe; },
+    aller(t) { try { this.audio.currentTime = Math.max(0, t) + this.coupe; } catch (e) {} },
     jouer() { return this.audio.play().catch(() => {}); },
     pause() { this.audio.pause(); },
-    vider() { this.audio.pause(); this.audio.removeAttribute('src'); this.audio.load(); this.src = null; },
+    vider() { this.audio.pause(); this.audio.removeAttribute('src'); this.audio.load(); this.src = null; this.coupe = 0; },
   };
   function appliquerVitesseA() {
     const a = A.audio;
@@ -656,7 +666,7 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
   let chant = null, piste = null, mode = 'seule', vitesse = 1, glisse = false, reglages = null, occupe = false;
   const boucle = { etat: 'off', a: 0, b: 0 };
   const moteur = () => mode === 'seule' ? A : B;
-  const dureeCourante = () => mode === 'seule' ? (isFinite(A.duree()) ? A.duree() : (piste && piste.duree) || NaN) : B.duree();
+  const dureeCourante = () => mode === 'seule' ? (isFinite(A.duree()) ? A.duree() : (piste && piste.duree - coupe(piste)) || NaN) : B.duree();
 
   function volumesPour(m) {
     return B.pistes.map((p, i) => {
@@ -724,7 +734,7 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
   function majEntete() {
     const n = B.pistes.length;
     let nom = piste ? piste.nom : '', info = '', voix = piste ? piste.voix : 'mix';
-    if (mode === 'seule') info = piste && piste.duree ? fmt(piste.duree) : '';
+    if (mode === 'seule') info = piste && piste.duree ? fmt(piste.duree - coupe(piste)) : '';
     else if (mode === 'avant') info = 'en avant, avec les autres voix';
     else if (mode === 'tout') { nom = 'Tout le chœur'; info = n + ' voix ensemble'; voix = 'mix'; }
     else if (mode === 'sans') { nom = 'Sans les ' + minuscule(piste.nom); info = 'à toi de chanter ta voix'; }
@@ -772,7 +782,7 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
     mode = m;
     if (boucle.etat !== 'off') { boucle.a = conv(boucle.a); boucle.b = conv(boucle.b); }
     if (m === 'seule') {
-      await A.charger(piste.src);
+      await A.charger(piste.src, piste.coupe);
       A.aller(conv(t));
     } else {
       B.volumes(volumesPour(m));
@@ -796,7 +806,7 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
     piste = p;
     dessinerOnglets(); dessinerMelange(); majEntete(); majBoucleUI();
     A.pause();
-    const ok = await A.charger(p.src);
+    const ok = await A.charger(p.src, p.coupe);
     if (!ok) { erreur('Cette piste ne se lit pas. Recharge la page ; si ça continue, préviens un chef de chœur.'); return; }
     if (ancienne && t) A.aller(Math.min(conv(t), (A.duree() || t) - 0.1));
     majTout(); majMedia();
@@ -966,8 +976,9 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
     $('chant-groupe').hidden = !c.groupe;
     $('chant-titre').textContent = c.titre;
     $('chant-maj').textContent = 'Mis à jour le ' + dateLongue(c.maj) + '.';
-    $('lien-calage').hidden = !c.mix;
+    $('lien-calage').hidden = !c.pistes.some(p => p.reperes);
     $('lien-calage').href = '#calage-' + c.slug;
+    $('lien-calage-2').href = '#calage-' + c.slug;
     erreur('');
     const aAudio = c.pistes.length > 0;
     $('lecteur').hidden = !aAudio;
@@ -1006,7 +1017,7 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
     if (cal.chant !== c) {
       AC.pause(); AC.removeAttribute('src');
       cal.chant = c;
-      cal.pistes = c.pistes.filter(p => p.mix);
+      cal.pistes = c.pistes.filter(p => p.reperes);
       cal.temps = cal.pistes.map(p => (p.reperes || [0, p.duree || 0]).slice());
       cal.active = -1;
     }
@@ -1014,12 +1025,13 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
     $('calage-retour-txt').textContent = c.titre;
     const manuel = cal.pistes.some(p => !p.auto);
     const douteux = cal.pistes.filter(p => p.auto && p.sur === false).map(p => p.nom);
-    $('calage-etat').textContent = (manuel ? 'Repères notés par un chef de chœur.' : 'Repères trouvés automatiquement : première et dernière note de chaque voix.')
+    $('calage-etat').textContent = (manuel ? 'Repères notés par un chef de chœur.' : 'Repères trouvés automatiquement : début et fin du chant dans chaque voix.')
       + (douteux.length ? ' À vérifier en priorité : ' + douteux.join(', ') + '.' : '');
+    $('calage-titre').textContent = cal.pistes.length > 1 ? 'Couper et caler les voix' : 'Couper le début';
     dessinerCalage();
   }
 
-  function nomRepere(k, n) { return k === 0 ? 'Première note' : k === n - 1 ? 'Dernière note' : 'Repère ' + (k + 1); }
+  function nomRepere(k, n) { return k === 0 ? 'Début du chant' : k === n - 1 ? 'Fin du chant' : 'Repère ' + (k + 1); }
 
   function dessinerCalage() {
     const n = cal.temps[0] ? cal.temps[0].length : 0;
@@ -1058,6 +1070,7 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
         ordreOk ? null : el('p', { class: 'erreur', text: 'Les repères doivent se suivre, à plus d’une demi-seconde d’écart.' }));
     }));
     $('calage-texte').textContent = texteCalage();
+    $('ajout-repere').hidden = cal.pistes.length < 2;
   }
 
   function texteCalage() {
@@ -1095,7 +1108,7 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
     const a = D.alertes || [];
     $('bloc-alertes').hidden = !a.length;
     $('alertes').replaceChildren(...a.map(x => el('li', {}, (x.chant ? x.chant + ' / ' : '') + x.fichier, el('span', { text: x.raison }))));
-    const avecMix = D.chants.filter(c => c.mix);
+    const avecMix = D.chants.filter(c => c.pistes.some(p => p.reperes));
     $('liens-calage').replaceChildren(...(avecMix.length
       ? avecMix.flatMap((c, i) => [i ? ', ' : '', el('a', { href: '#calage-' + c.slug, text: c.titre })]).concat('.')
       : ['le lien apparaîtra sur la page de chaque chant.']));
@@ -1106,7 +1119,7 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
   function afficher() {
     const h = decodeURIComponent(location.hash.slice(1));
     const c = h.startsWith('c-') ? D.chants.find(x => x.slug === h.slice(2)) : null;
-    const cc = h.startsWith('calage-') ? D.chants.find(x => x.slug === h.slice(7) && x.mix) : null;
+    const cc = h.startsWith('calage-') ? D.chants.find(x => x.slug === h.slice(7) && x.pistes.some(p => p.reperes)) : null;
     const vue = c ? 'chant' : cc ? 'calage' : h === 'chefs' ? 'chefs' : 'accueil';
     ['accueil', 'chant', 'calage', 'chefs'].forEach(v => { $('vue-' + v).hidden = v !== vue; });
     if (vue !== 'calage') AC.pause();

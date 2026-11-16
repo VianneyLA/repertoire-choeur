@@ -44,6 +44,7 @@ CONFIG = RACINE / "site.json"
 # À augmenter pour refaire tous les calculs (si la façon de convertir ou de caler change).
 VERSION_CONVERSION = "2"
 VERSION_MIX = "1"
+VERSION_NOTES = "2"   # façon de repérer le début et la fin du chant
 
 # Une vidéo (répétition filmée, fichier .mpeg) donne sa piste son.
 EXT_AUDIO = {".mp3", ".mpeg", ".mpga", ".mpg", ".m4a", ".aac", ".opus", ".ogg", ".oga", ".wav", ".flac", ".amr",
@@ -481,27 +482,59 @@ def notes_tenues(a: dict, duree_min: float = 0.3) -> list[tuple[int, int]]:
 
 
 def detecter_notes(mp3: Path) -> dict:
-    """Première et dernière note chantée d'une piste : début de la première note tenue (hauteur stable
-    au moins 0,3 s, chantée assez fort), fin de la dernière. Une annonce parlée, des claquements ou un
-    décompte n'en sont pas : la parole ne tient pas sa hauteur, un claquement ne dure pas."""
+    """Début et fin du chant dans une piste.
+
+    Une piste commence souvent par une annonce : le chef dit le titre, la voix, parfois chante la note de
+    départ. Le chant, lui, se reconnaît à une voix continue pendant plusieurs secondes : le début est la
+    première attaque d'un passage où la voix chante presque sans interruption au moins 2 s, et reste chantée
+    sur les 6 s qui suivent. Le seuil se règle sur la piste elle-même (une voix grave paraît moins continue).
+    La fin est la fin de la dernière note tenue."""
+    import numpy as np
+
     a = trames_voix(mp3)
-    db, fps = a["db"], a["fps"]
-    if a["duree"] < 1:
+    db, fps, voisee = a["db"], a["fps"], a["voisee"].astype(float)
+    n = len(db)
+    if a["duree"] < 3:
         return {"debut": 0.0, "fin": a["duree"], "sur": False}
+
+    def moyenne_devant(x: np.ndarray, largeur: int) -> np.ndarray:
+        cumul = np.concatenate([[0.0], np.cumsum(x)])
+        fin_ = np.minimum(np.arange(n) + largeur, n)
+        return (cumul[fin_] - cumul[:n]) / np.maximum(fin_ - np.arange(n), 1)
+
+    corps = voisee[int(0.2 * n): int(0.8 * n)]
+    seuil = max(0.45, 0.85 * float(corps.mean())) if len(corps) else 0.6
+    r2 = moyenne_devant(voisee, int(2 * fps))
+    r6 = moyenne_devant(voisee, int(6 * fps))
+    niveau = moyenne_devant(np.maximum(db, -60), int(2 * fps))
+    chante = (r2 >= seuil) & (r6 >= 0.85 * seuil) & (niveau >= -20)
     tenues = notes_tenues(a)
-    if not tenues:
-        import numpy as np
-        actif = np.nonzero(db > -30)[0]
-        return {"debut": float(actif[0] / fps) if len(actif) else 0.0,
-                "fin": float(actif[-1] / fps) if len(actif) else a["duree"], "sur": False}
-    debut, fin = tenues[0][0], tenues[-1][1]
-    while debut > 0 and db[debut - 1] > db[tenues[0][0]] - 15 and debut > tenues[0][0] - int(0.12 * fps):
-        debut -= 1   # l'attaque de la note, un peu avant que la hauteur se stabilise
-    return {"debut": round(debut / fps, 2), "fin": round(fin / fps, 2), "sur": True}
+    fin = tenues[-1][1] / fps if tenues else float(np.nonzero(db > -30)[0][-1] / fps)
+    if not chante.any():
+        return {"debut": round(tenues[0][0] / fps, 2) if tenues else 0.0, "fin": round(fin, 2), "sur": False}
+    i = int(np.argmax(chante))
+    while i < n - 1 and not (voisee[i] and db[i] > -28):
+        i += 1     # première trame chantée du passage
+    # Remonte jusqu'à l'attaque : la voix peut avoir commencé un peu avant que le passage soit reconnu.
+    limite = max(0, i - int(1.5 * fps))
+    trou = 0
+    j = i
+    while j > limite:
+        if voisee[j - 1] and db[j - 1] > -28:
+            trou = 0
+        else:
+            trou += 1
+            if trou > int(0.08 * fps):
+                break
+        j -= 1
+    debut = j + trou
+    while debut > 0 and db[debut - 1] > db[debut] - 15 and debut > j + trou - int(0.1 * fps):
+        debut -= 1
+    return {"debut": round(debut / fps, 2), "fin": round(max(fin, debut / fps + 1), 2), "sur": True}
 
 
 def reperes_auto(f: dict) -> dict | None:
-    dossier = CACHE / (cle_cache(f) + "-notes")
+    dossier = CACHE / (cle_cache(f) + "-notes" + VERSION_NOTES)
     return en_cache(dossier, lambda tmp: detecter_notes(CACHE / cle_cache(f) / "piste.mp3"))
 
 
@@ -590,36 +623,50 @@ def copier(source: Path, dest: Path) -> None:
 
 def caler_chant(c: dict, pistes: list[dict], fichiers_pistes: list[dict], calage: str | None,
                 dest: Path, s: str, alertes: list[dict]) -> dict | None:
-    """Prépare l'écoute à plusieurs voix d'un chant ; ajoute à chaque piste ses repères et sa version recalée."""
-    idx = [i for i, p in enumerate(pistes) if p["voix"] in VOIX_MIX]
-    if len(idx) < 2:
-        return None
+    """Repère le début et la fin du chant dans chaque piste (ce qui précède le début, une annonce parlée,
+    est coupé à l'écoute), puis prépare l'écoute à plusieurs voix : chaque voix recalée sur les autres."""
     notes = {}
-    for i in idx:
-        r = reperes_auto(fichiers_pistes[i])
+    for i, f in enumerate(fichiers_pistes):
+        r = reperes_auto(f)
         if r is None:
             return None
         notes[i] = r
     manuels: dict[int, list[float]] = {}
     for nom, temps in lire_calage(calage or ""):
         voix, num, _ = nom_piste(nom)
-        cible = [i for i in idx if (pistes[i]["voix"], pistes[i]["num"]) == (voix, num)] or \
-                [i for i in idx if simplifier(pistes[i]["nom"]) == simplifier(nom)]
+        cible = [i for i, p in enumerate(pistes) if (p["voix"], p["num"]) == (voix, num)] or \
+                [i for i, p in enumerate(pistes) if simplifier(p["nom"]) == simplifier(nom)]
         if not cible:
             alertes.append({"chant": c["nom"], "fichier": "Calage", "raison": f"« {nom} » ne correspond à aucune piste."})
-        elif len(temps) < 2 or any(b - a < 0.5 for a, b in zip(temps, temps[1:])):
+        elif not temps or any(b - a < 0.5 for a, b in zip(temps, temps[1:])):
             alertes.append({"chant": c["nom"], "fichier": "Calage",
-                            "raison": f"{nom} : il faut au moins deux repères, dans l'ordre, à plus d'une demi-seconde d'écart."})
+                            "raison": f"{nom} : les repères doivent se suivre, à plus d'une demi-seconde d'écart."})
         else:
             manuels[cible[0]] = temps
-    tailles = {len(manuels[i]) for i in idx if i in manuels}
-    if len(manuels) == len(idx) and len(tailles) == 1:
-        reperes = {i: manuels[i] for i in idx}
-    else:   # sans repères notés pour toutes les voix : première et dernière note
-        if manuels and len(tailles) > 1:
-            alertes.append({"chant": c["nom"], "fichier": "Calage",
-                            "raison": "Les voix n'ont pas le même nombre de repères : seuls la première et la dernière note comptent."})
-        reperes = {i: [manuels[i][0], manuels[i][-1]] if i in manuels else [notes[i]["debut"], notes[i]["fin"]] for i in idx}
+    for i, p in enumerate(pistes):
+        m = manuels.get(i)
+        if m and len(m) >= 2:
+            p["reperes"] = m
+        elif m:   # seul le début est noté
+            p["reperes"] = [m[0], max(notes[i]["fin"], m[0] + 1)]
+        else:
+            p["reperes"] = [notes[i]["debut"], notes[i]["fin"]]
+        p["auto"] = i not in manuels
+        p["sur"] = bool(m) or notes[i]["sur"]
+        # À l'écoute d'une voix seule, on saute ce qui précède le début, avec une marge plus large si le
+        # début a été trouvé automatiquement, pour ne pas couper la première note.
+        p["coupe"] = round(max(0.0, p["reperes"][0] - (0.3 if m else 0.6)), 2)
+
+    idx = [i for i, p in enumerate(pistes) if p["voix"] in VOIX_MIX]
+    if len(idx) < 2:
+        return None
+    tailles = {len(pistes[i]["reperes"]) for i in idx}
+    if len(tailles) == 1:
+        reperes = {i: pistes[i]["reperes"] for i in idx}
+    else:
+        alertes.append({"chant": c["nom"], "fichier": "Calage",
+                        "raison": "Les voix n'ont pas le même nombre de repères : seuls le début et la fin comptent."})
+        reperes = {i: [pistes[i]["reperes"][0], pistes[i]["reperes"][-1]] for i in idx}
     commun = plan_de_calage([reperes[i] for i in idx])
     for i in idx:
         souci = souci_de_calage(reperes[i], commun)
@@ -635,11 +682,7 @@ def caler_chant(c: dict, pistes: list[dict], fichiers_pistes: list[dict], calage
             copier(CACHE / f"mix-{meta['cle']}" / fichier, dest / cible)
             src[nom] = f"m/{s}/{cible}"
         pistes[i]["mix"] = {"src": src, "carte": meta["carte"]}
-    for i in idx:
-        pistes[i]["reperes"] = reperes[i]
-        pistes[i]["auto"] = i not in manuels
-        pistes[i]["sur"] = notes[i]["sur"]
-    return {"duree": round(SILENCE + commun[-1] + APRES, 2), "manuel": bool(manuels),
+    return {"duree": round(SILENCE + commun[-1] + APRES, 2), "manuel": any(i in manuels for i in idx),
             "vitesses": [v for v, _, _ in VITESSES]}
 
 

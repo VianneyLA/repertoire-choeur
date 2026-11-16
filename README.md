@@ -30,8 +30,9 @@ Dossier Drive des chefs ──(toutes les heures, GitHub Actions)──▶ const
 Les voix d'un chant, enregistrées séparément, ne partent pas au même moment (une annonce parlée avant la
 première note) ni au même tempo. Pour les écouter ensemble, la construction les recale :
 
-1. Elle repère dans chaque piste la première et la dernière note chantée : la première note tenue au moins
-   0,3 s sur une même hauteur (une annonce parlée ne tient pas sa hauteur, un clic ne dure pas).
+1. Elle repère dans chaque piste le début et la fin du chant. Une piste commence souvent par une annonce
+   (le titre, la voix, parfois la note de départ chantée) ; le chant se reconnaît à une voix continue
+   pendant plusieurs secondes. Ce qui précède le début est sauté à l'écoute, voix seule comme ensemble.
 2. Si le dossier du chant contient un document Google « Calage », ses repères remplacent ceux trouvés
    automatiquement. Il se remplit depuis la page « Caler les voix » du site (lien en bas de chaque chant).
    Des repères au milieu (une attaque commune) affinent le calage.
