@@ -1,0 +1,122 @@
+# Relit le dossier Drive des chefs de chœur toutes les heures et republie le site s'il a changé.
+name: Site du répertoire
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: site
+  cancel-in-progress: false
+
+jobs:
+  construire:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      pages: read
+      actions: write
+    outputs:
+      publier: ${{ steps.comparer.outputs.publier }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Vérifier les règles de nommage
+        run: python3 -m unittest discover -s tests
+
+      # Tant que la clé et le dossier ne sont pas posés, le passage s'arrête là sans erreur.
+      - name: Vérifier la configuration
+        id: config
+        env:
+          CLE: ${{ secrets.DRIVE_API_KEY }}
+          DOSSIER: ${{ secrets.DRIVE_FOLDER_ID }}
+        run: |
+          if [ -n "$CLE" ] && [ -n "$DOSSIER" ]; then
+            echo "pret=oui" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Secrets DRIVE_API_KEY et DRIVE_FOLDER_ID absents : le site sera construit dès qu'ils seront posés."
+            echo "pret=non" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Lire le Drive
+        if: steps.config.outputs.pret == 'oui'
+        env:
+          DRIVE_API_KEY: ${{ secrets.DRIVE_API_KEY }}
+          DRIVE_FOLDER_ID: ${{ secrets.DRIVE_FOLDER_ID }}
+        run: python3 construire.py lister
+
+      - name: Reprendre les fichiers déjà convertis
+        if: steps.config.outputs.pret == 'oui'
+        uses: actions/cache@v4
+        with:
+          path: .cache
+          key: medias-${{ hashFiles('manifest.json') }}
+          restore-keys: medias-
+
+      - name: Compter les fichiers à convertir
+        if: steps.config.outputs.pret == 'oui'
+        id: manquants
+        run: python3 construire.py manquants
+
+      - name: Installer ffmpeg et poppler
+        if: steps.config.outputs.pret == 'oui' && steps.manquants.outputs.nombre != '0'
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends ffmpeg poppler-utils
+
+      - name: Construire le site
+        if: steps.config.outputs.pret == 'oui'
+        env:
+          DRIVE_API_KEY: ${{ secrets.DRIVE_API_KEY }}
+        run: python3 construire.py construire
+
+      - name: Adresse du site
+        if: steps.config.outputs.pret == 'oui'
+        id: pages
+        uses: actions/configure-pages@v5
+
+      - name: Comparer avec le site en ligne
+        if: steps.config.outputs.pret == 'oui'
+        id: comparer
+        env:
+          BASE: ${{ steps.pages.outputs.base_url }}
+          EVENEMENT: ${{ github.event_name }}
+        run: |
+          en_ligne=$(curl -fsSL "$BASE/version.txt" 2>/dev/null || echo aucune)
+          if [ "$EVENEMENT" = "schedule" ] && [ "$en_ligne" = "$(cat _site/version.txt)" ]; then
+            echo "Rien de nouveau dans le Drive : le site en ligne reste tel quel."
+            echo "publier=non" >> "$GITHUB_OUTPUT"
+          else
+            echo "publier=oui" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Préparer la publication
+        if: steps.comparer.outputs.publier == 'oui'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+
+      # GitHub arrête les tâches horaires d'un dépôt sans activité depuis 60 jours : on la réactive à chaque passage.
+      - name: Garder la mise à jour horaire active
+        if: github.event_name == 'schedule'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/site.yml/enable" --silent
+
+  publier:
+    needs: construire
+    if: needs.construire.outputs.publier == 'oui'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploiement.outputs.page_url }}
+    steps:
+      - name: Publier
+        id: deploiement
+        uses: actions/deploy-pages@v4

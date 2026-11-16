@@ -1,0 +1,664 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#f2f3f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1118" media="(prefers-color-scheme: dark)">
+<title>__TITRE__ · Répertoire</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 34'%3E%3Crect width='34' height='34' rx='9' fill='%23171a2b'/%3E%3Cellipse cx='14' cy='22' rx='3.6' ry='2.6' transform='rotate(-20 14 22)' fill='%23fff'/%3E%3Cpath d='M17.3 21.2V8.5' stroke='%23fff' stroke-width='1.6'/%3E%3Cellipse cx='22' cy='18' rx='3.6' ry='2.6' transform='rotate(-20 22 18)' fill='%23ff8a5c'/%3E%3Cpath d='M25.3 17.2V5.5' stroke='%23ff8a5c' stroke-width='1.6'/%3E%3C/svg%3E">
+<link rel="preload" href="polices/atkinson-400.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face { font-family: "Atkinson Hyperlegible"; font-weight: 400; font-display: swap; src: url(polices/atkinson-400.woff2) format("woff2"); }
+@font-face { font-family: "Atkinson Hyperlegible"; font-weight: 700; font-display: swap; src: url(polices/atkinson-700.woff2) format("woff2"); }
+@font-face { font-family: "Bricolage Grotesque"; font-weight: 700; font-display: swap; src: url(polices/bricolage-700.woff2) format("woff2"); }
+@font-face { font-family: "IBM Plex Mono"; font-weight: 500; font-display: swap; src: url(polices/plexmono-500.woff2) format("woff2"); }
+
+/* Une colonne pensée pour le téléphone (680 px au plus) ; sur un chant, le lecteur d'abord, la partition dessous.
+   Chaque voix a sa couleur, reprise partout où la voix apparaît. */
+:root {
+  --bg: #f2f3f7; --surface: #ffffff; --ink: #171a2b; --muted: #585d73; --line: #d9dce6; --soft: #e8eaf1;
+  --sop: #c4410c; --alt: #9a6200; --ten: #0b7a75; --bas: #4c4fc9; --neutre: #4a5068;
+  --on-accent: #ffffff; --alerte: #a8361a;
+  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --c: var(--neutre);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1118; --surface: #181b26; --ink: #eceef6; --muted: #9ba1b7; --line: #2b2f3f; --soft: #222634;
+    --sop: #ff8a5c; --alt: #f2b632; --ten: #3cc9bb; --bas: #a3a6ff; --neutre: #c3c8d8;
+    --on-accent: #10121a; --alerte: #ff9b80;
+    color-scheme: dark;
+  }
+}
+[data-voix="sop"] { --c: var(--sop); }
+[data-voix="alt"] { --c: var(--alt); }
+[data-voix="ten"] { --c: var(--ten); }
+[data-voix="bas"] { --c: var(--bas); }
+[data-voix="tut"], [data-voix="acc"], [data-voix="autre"] { --c: var(--neutre); }
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 var(--font-body); -webkit-font-smoothing: antialiased;
+  padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:disabled { cursor: default; }
+a { color: inherit; }
+img { max-width: 100%; }
+:focus-visible { outline: 3px solid var(--c); outline-offset: 2px; border-radius: 6px; }
+
+.app {
+  max-width: 680px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 14px 40px;
+  display: flex; flex-direction: column; gap: 22px;
+}
+
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; min-width: 0; }
+.brand svg { flex: none; }
+.brand-txt { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+.brand-txt strong { font: 700 16px/1.15 var(--font-display); }
+.brand-txt span { font-size: 13px; color: var(--muted); }
+
+.label { margin: 0; font: 700 12px/1.3 var(--font-body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); letter-spacing: -.01em; text-wrap: balance; overflow-wrap: anywhere; }
+.eyebrow { margin: 0 0 6px; font-size: 15px; color: var(--muted); }
+.vue { display: flex; flex-direction: column; gap: 22px; }
+.bloc { display: flex; flex-direction: column; gap: 10px; }
+.aide { margin: 0; font-size: 14px; color: var(--muted); }
+.texte { margin: 0; max-width: 62ch; }
+
+/* Choix du pupitre */
+.voix-choix { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.voix-btn { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 4px 9px; border-radius: 12px;
+  border: 1.5px solid var(--line); background: var(--surface); font-size: 14px; font-weight: 700; min-width: 0; }
+.pastille { width: 10px; height: 10px; border-radius: 50%; background: var(--c); flex: none; }
+.voix-btn[aria-pressed="true"] { background: var(--c); border-color: var(--c); color: var(--on-accent); }
+.voix-btn[aria-pressed="true"] .pastille { background: var(--on-accent); }
+
+/* Recherche */
+.cherche { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; }
+.cherche::placeholder { color: var(--muted); }
+
+/* Liste des chants */
+.liste { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.chant { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px 12px;
+  padding: 14px 14px 14px 16px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); text-decoration: none; }
+.chant:hover { border-color: var(--muted); }
+.chant-titre { font: 700 20px/1.2 var(--font-display); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; overflow-wrap: anywhere; }
+.chant-meta { grid-column: 1; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 14px; color: var(--muted); }
+.chant-fleche { grid-column: 2; grid-row: 1 / span 2; color: var(--muted); }
+.points { display: inline-flex; gap: 4px; }
+.points i { width: 9px; height: 9px; border-radius: 50%; background: var(--c); display: block; }
+.points i.manque { background: transparent; box-shadow: inset 0 0 0 1.5px var(--line); }
+.badge { font: 700 11px/1 var(--font-body); letter-spacing: .06em; text-transform: uppercase; padding: 4px 7px; border-radius: 6px; background: var(--ink); color: var(--bg); }
+.vide { padding: 22px 18px; border-radius: 14px; border: 1.5px dashed var(--line); display: flex; flex-direction: column; gap: 6px; }
+.vide strong { font: 700 18px/1.25 var(--font-display); }
+
+.lien-chefs { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 14px; border: 1.5px dashed var(--line); text-decoration: none; font-weight: 700; }
+.lien-chefs span { font-weight: 400; color: var(--muted); font-size: 14px; display: block; }
+
+/* Page d'un chant */
+.retour { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; color: var(--muted); font-weight: 700; font-size: 15px; padding: 4px 0; }
+.onglets { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 4px; padding: 4px; background: var(--soft); border-radius: 14px; }
+.onglet { display: flex; align-items: center; justify-content: center; gap: 5px; padding: 9px 2px; border: 0; border-radius: 10px; background: transparent; font-size: 14px; font-weight: 700; min-width: 0; }
+.onglet span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.onglet .pastille { width: 8px; height: 8px; }
+.onglet[aria-pressed="true"] { background: var(--c); color: var(--on-accent); }
+.onglet[aria-pressed="true"] .pastille { background: var(--on-accent); }
+.onglet:disabled { color: var(--muted); font-weight: 400; }
+.onglet:disabled .pastille { background: transparent; box-shadow: inset 0 0 0 1.5px var(--muted); }
+
+.lecteur { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 18px 16px 16px; display: flex; flex-direction: column; gap: 14px; }
+.piste { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.piste strong { font: 700 22px/1.15 var(--font-display); min-width: 0; overflow-wrap: anywhere; }
+.piste span { font-size: 13px; color: var(--muted); flex: none; }
+.erreur { margin: 0; font-size: 14px; color: var(--alerte); }
+
+.barre { position: relative; height: 34px; }
+.barre-int { position: absolute; top: 0; bottom: 0; left: 10px; right: 10px; }
+.rail { position: absolute; left: 0; right: 0; top: 50%; height: 6px; margin-top: -3px; border-radius: 3px; background: var(--soft); overflow: hidden; }
+.fait { height: 100%; width: 0; background: var(--c); }
+.zone { position: absolute; top: 50%; height: 22px; margin-top: -11px; border-radius: 5px; background: color-mix(in srgb, var(--c) 20%, transparent); box-shadow: inset 2px 0 0 var(--c), inset -2px 0 0 var(--c); pointer-events: none; }
+.zone.arme { width: 2px !important; background: var(--c); box-shadow: none; }
+.barre input[type="range"] { -webkit-appearance: none; appearance: none; position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; background: transparent; cursor: pointer; }
+.barre input[type="range"]::-webkit-slider-runnable-track { height: 34px; background: transparent; }
+.barre input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; margin-top: 7px; border-radius: 50%; background: var(--c); border: 3px solid var(--surface); box-shadow: 0 0 0 1px var(--c); }
+.barre input[type="range"]::-moz-range-track { height: 34px; background: transparent; }
+.barre input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--c); border: 3px solid var(--surface); box-shadow: 0 0 0 1px var(--c); }
+.barre input[type="range"]:focus-visible { outline: none; }
+.barre input[type="range"]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px var(--c); }
+.temps { display: flex; justify-content: space-between; margin-top: -8px; font: 500 13px/1 var(--font-mono); font-variant-numeric: tabular-nums; color: var(--muted); }
+
+.commandes { display: flex; align-items: center; justify-content: center; gap: 22px; }
+.rond { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--surface); font: 500 14px/1 var(--font-mono); }
+.rond:active { background: var(--soft); }
+.lecture { width: 76px; height: 76px; border: 0; background: var(--c); color: var(--on-accent); }
+.lecture:active { background: var(--c); filter: brightness(.92); }
+.lecture svg { width: 30px; height: 30px; }
+
+.outils { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; padding-top: 12px; border-top: 1px solid var(--soft); }
+.outil-grp { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 3px; background: var(--soft); border-radius: 10px; }
+.seg button { border: 0; background: transparent; padding: 8px 0; border-radius: 8px; font: 500 14px/1 var(--font-mono); }
+.seg button[aria-pressed="true"] { background: var(--surface); box-shadow: 0 1px 2px rgb(0 0 0 / .12); color: var(--ink); }
+.boucle-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+.bouton { display: inline-flex; align-items: center; gap: 6px; padding: 9px 12px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--surface); font-size: 14px; font-weight: 700; text-decoration: none; }
+.bouton.plein { background: var(--c); border-color: var(--c); color: var(--on-accent); }
+.bouton.discret { border-color: transparent; background: var(--soft); }
+.boucle-aide { grid-column: 1 / -1; }
+
+/* Partition */
+.partition-tete { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.partition-tete h2 { margin: 0; font: 700 20px/1.2 var(--font-display); overflow-wrap: anywhere; }
+.pages { overflow-x: auto; border-radius: 10px; border: 1px solid var(--line); background: #fff; -webkit-overflow-scrolling: touch; }
+.pages a { display: block; }
+.pages a + a { border-top: 1px solid #d9dce6; }
+.pages img { display: block; width: 100%; height: auto; }
+.pages.zoom img { width: 220%; max-width: none; }
+.partition-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+.maj { margin: 0; font-size: 14px; color: var(--muted); }
+
+/* Page des chefs de chœur */
+.etapes { margin: 0; padding: 0; list-style: none; counter-reset: e; display: flex; flex-direction: column; gap: 14px; }
+.etapes li { counter-increment: e; display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 12px; align-items: start; }
+.etapes li::before { content: counter(e); display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--ink); color: var(--bg); font: 700 15px/1 var(--font-display); }
+.etapes p { margin: 4px 0 0; }
+.arbo { margin: 0; padding: 14px 16px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); font: 500 13.5px/1.7 var(--font-mono); overflow-x: auto; white-space: pre; }
+.arbo b { font-weight: 500; color: var(--muted); }
+.alertes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.alertes li { padding: 12px 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); box-shadow: inset 3px 0 0 var(--alerte); font-size: 15px; overflow-wrap: anywhere; }
+.alertes li span { display: block; color: var(--muted); font-size: 14px; }
+
+.pied { padding-top: 14px; border-top: 1px solid var(--line); }
+
+@media (max-width: 420px) {
+  .outils { grid-template-columns: minmax(0, 1fr); }
+  .commandes { gap: 16px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <a class="brand" href="#">
+      <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" rx="9" fill="var(--ink)"/><g stroke="var(--bg)" stroke-width="1.4" opacity=".55"><path d="M7 10h20M7 14h20M7 18h20M7 22h20M7 26h20"/></g><ellipse cx="14" cy="22" rx="3.6" ry="2.6" transform="rotate(-20 14 22)" fill="var(--bg)"/><path d="M17.3 21.2V8.5" stroke="var(--bg)" stroke-width="1.6"/><ellipse cx="22" cy="18" rx="3.6" ry="2.6" transform="rotate(-20 22 18)" fill="var(--sop)"/><path d="M25.3 17.2V5.5" stroke="var(--sop)" stroke-width="1.6"/></svg>
+      <span class="brand-txt"><strong id="nom-choeur"></strong><span id="sous-titre"></span></span>
+    </a>
+  </header>
+
+  <!-- Accueil -->
+  <main class="vue" id="vue-accueil">
+    <section class="bloc">
+      <h2 class="label" id="lbl-pupitre">Mon pupitre</h2>
+      <div class="voix-choix" role="group" aria-labelledby="lbl-pupitre" id="mon-pupitre"></div>
+      <p class="aide" id="aide-pupitre"></p>
+    </section>
+    <input class="cherche" id="cherche" type="search" placeholder="Chercher un chant" aria-label="Chercher un chant" autocomplete="off" hidden>
+    <div class="vue" id="liste-chants"></div>
+    <a class="lien-chefs" href="#chefs">
+      <div>Chef de chœur ?<span>Ajouter ou remplacer un chant</span></div>
+      <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M7 4l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </main>
+
+  <!-- Un chant -->
+  <main class="vue" id="vue-chant" hidden>
+    <a class="retour" href="#"><svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true"><path d="M13 4l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Répertoire</a>
+    <div>
+      <p class="eyebrow" id="chant-groupe"></p>
+      <h1 id="chant-titre"></h1>
+    </div>
+
+    <div class="onglets" role="group" aria-label="Voix" id="onglets"></div>
+
+    <section class="lecteur" id="lecteur" aria-label="Lecteur">
+      <div class="piste"><strong id="piste-nom"></strong><span id="piste-duree"></span></div>
+      <p class="erreur" id="erreur" hidden>Cette piste ne se lit pas. Recharge la page ; si ça continue, préviens un chef de chœur.</p>
+      <div>
+        <div class="barre">
+          <div class="barre-int">
+            <div class="rail"><div class="fait" id="fait"></div></div>
+            <div class="zone" id="zone" hidden></div>
+          </div>
+          <input type="range" id="position" min="0" max="100" step="0.1" value="0" aria-label="Position dans l'enregistrement">
+        </div>
+        <div class="temps"><span id="t-courant">0:00</span><span id="t-total">–:––</span></div>
+      </div>
+      <div class="commandes">
+        <button class="rond" id="recul" aria-label="Reculer de 5 secondes">−5 s</button>
+        <button class="rond lecture" id="lecture" aria-label="Lire">
+          <svg viewBox="0 0 24 24" id="ico-lire" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg>
+          <svg viewBox="0 0 24 24" id="ico-pause" aria-hidden="true" hidden><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" fill="currentColor"/></svg>
+        </button>
+        <button class="rond" id="avance" aria-label="Avancer de 5 secondes">+5 s</button>
+      </div>
+      <div class="outils">
+        <div class="outil-grp">
+          <span class="label" id="lbl-vitesse">Vitesse</span>
+          <div class="seg" role="group" aria-labelledby="lbl-vitesse" id="vitesse">
+            <button data-v="0.5" aria-pressed="false">0,5×</button>
+            <button data-v="0.75" aria-pressed="false">0,75×</button>
+            <button data-v="1" aria-pressed="true">1×</button>
+          </div>
+        </div>
+        <div class="outil-grp">
+          <span class="label">Répéter un passage</span>
+          <div class="boucle-btns">
+            <button class="bouton" id="boucle">Marquer le début</button>
+            <button class="bouton discret" id="boucle-stop" hidden>Annuler</button>
+          </div>
+        </div>
+        <p class="aide boucle-aide" id="boucle-aide"></p>
+      </div>
+    </section>
+
+    <section class="lecteur" id="sans-audio" hidden>
+      <p class="texte">Pas encore d'enregistrement pour ce chant.</p>
+    </section>
+
+    <div class="vue" id="partitions"></div>
+    <p class="maj" id="chant-maj"></p>
+  </main>
+
+  <!-- Chefs de chœur -->
+  <main class="vue" id="vue-chefs" hidden>
+    <a class="retour" href="#"><svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true"><path d="M13 4l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Répertoire</a>
+    <div>
+      <p class="eyebrow">Pour les chefs de chœur</p>
+      <h1>Ajouter ou remplacer un chant</h1>
+    </div>
+    <p class="texte">Tout se passe dans le dossier Drive du répertoire, que vous pouvez modifier. Le site le relit toutes les heures : vous ne touchez jamais au site.</p>
+    <ol class="etapes">
+      <li><div><strong>Créez un dossier par chant</strong>, nommé « Œuvre – Titre » ou « Compositeur – Titre ».<p class="aide">Pour fixer l'ordre de la liste, commencez par un numéro : « 01 – Gluck – Chœur infernal ».</p></div></li>
+      <li><div><strong>Déposez-y la partition et un audio par voix.</strong> Le nom de chaque audio dit sa voix : Sopranos, Altos, Ténors, Basses, ou Tutti, Piano.<p class="aide">« Basses 1 » et « Basses 2 » font deux pistes. La partition peut être un PDF ou des photos. Les audios de WhatsApp conviennent tels quels.</p></div></li>
+      <li><div><strong>Attendez une heure au plus.</strong> Le chant apparaît sur le site, marqué « Nouveau ».</div></li>
+    </ol>
+    <pre class="arbo">Répertoire du chœur/
+├── 01 – Orphée et Eurydice – Chœur infernal/
+│   ├── Partition.pdf
+│   ├── Sopranos.opus  <b>← tel que sorti de WhatsApp</b>
+│   ├── Altos.mp3
+│   ├── Ténors.mp3
+│   └── Basses.mp3
+└── 02 – Fauré – Cantique de Jean Racine/
+    └── …</pre>
+    <div class="bloc">
+      <h2 class="label">Depuis WhatsApp</h2>
+      <p class="texte">Appui long sur l'audio, puis Partager, Drive. Choisissez le dossier du chant et renommez le fichier avec sa voix avant de l'envoyer.</p>
+    </div>
+    <div class="bloc">
+      <h2 class="label">Corriger</h2>
+      <p class="texte">Redéposez le fichier sous le même nom : le site garde le plus récent. Un fichier supprimé du Drive disparaît du site, et se récupère dans la corbeille du Drive pendant 30 jours.</p>
+    </div>
+    <div class="bloc" id="bloc-alertes" hidden>
+      <h2 class="label">Fichiers que le site n'a pas pu lire</h2>
+      <ul class="alertes" id="alertes"></ul>
+    </div>
+    <p class="maj" id="chefs-maj"></p>
+  </main>
+
+  <footer class="pied" id="pied">
+    <p class="aide" id="pied-maj"></p>
+  </footer>
+</div>
+
+<audio id="audio" preload="metadata"></audio>
+
+<script type="application/json" id="donnees">__DONNEES__</script>
+<script>
+(function () {
+  'use strict';
+  const D = JSON.parse(document.getElementById('donnees').textContent);
+  const $ = id => document.getElementById(id);
+  const STANDARD = ['sop', 'alt', 'ten', 'bas'];
+  const NOMS = { sop: 'Sopranos', alt: 'Altos', ten: 'Ténors', bas: 'Basses' };
+  const COURT = { 'Accompagnement': 'Accomp.' };
+
+  const lire = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+  const ecrire = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+  const el = (tag, attrs, ...enfants) => {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs || {})) {
+      if (v == null || v === false) continue;
+      if (k === 'class') n.className = v; else if (k === 'text') n.textContent = v; else n.setAttribute(k, v === true ? '' : v);
+    }
+    enfants.flat().forEach(e => e != null && n.append(e));
+    return n;
+  };
+  const fleche = () => { const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); s.setAttribute('width', '20'); s.setAttribute('height', '20'); s.setAttribute('viewBox', '0 0 20 20'); s.setAttribute('class', 'chant-fleche'); s.setAttribute('aria-hidden', 'true'); s.innerHTML = '<path d="M7 4l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'; return s; };
+  const fmt = s => { if (!isFinite(s)) return '–:––'; s = Math.max(0, Math.floor(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+  const dateCourte = iso => iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : '';
+  const dateLongue = iso => iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+  const simple = t => (t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/œ/g, 'oe');
+  const estNouveau = c => c.maj && (Date.now() - new Date(c.maj).getTime()) < D.nouveau_jours * 864e5;
+
+  $('nom-choeur').textContent = D.nom;
+  $('sous-titre').textContent = D.sous_titre || 'Répertoire';
+  if (D.maj) $('pied-maj').textContent = 'Dernier ajout le ' + dateLongue(D.maj) + '.';
+
+  /* ---------- Accueil ---------- */
+  let monPupitre = lire('pupitre');
+  if (!STANDARD.includes(monPupitre)) monPupitre = null;
+
+  function dessinerMonPupitre() {
+    const box = $('mon-pupitre');
+    box.replaceChildren(...STANDARD.map(v => {
+      const b = el('button', { class: 'voix-btn', 'data-voix': v, 'aria-pressed': String(v === monPupitre) }, el('span', { class: 'pastille' }), NOMS[v]);
+      b.addEventListener('click', () => { monPupitre = v; ecrire('pupitre', v); dessinerMonPupitre(); });
+      return b;
+    }));
+    $('aide-pupitre').textContent = monPupitre
+      ? 'Chaque chant s’ouvre sur les ' + NOMS[monPupitre].toLowerCase() + '.'
+      : 'Choisis ta voix : chaque chant s’ouvrira dessus.';
+  }
+
+  function ligneChant(c) {
+    const voix = new Set(c.pistes.map(p => p.voix));
+    const nStd = STANDARD.filter(v => voix.has(v)).length;
+    const autres = c.pistes.filter(p => !STANDARD.includes(p.voix)).length;
+    const meta = [];
+    if (nStd) meta.push(nStd === 4 ? '4 voix' : nStd + ' voix sur 4');
+    if (autres) meta.push((nStd ? '+ ' : '') + autres + (autres > 1 ? ' pistes' : ' piste'));
+    if (c.partitions.length) meta.push('partition');
+    meta.push(dateCourte(c.maj));
+    const points = nStd ? el('span', { class: 'points', 'aria-hidden': 'true' },
+      STANDARD.map(v => voix.has(v) ? el('i', { 'data-voix': v }) : el('i', { class: 'manque' }))) : null;
+    return el('li', {}, el('a', { class: 'chant', href: '#c-' + c.slug },
+      el('span', { class: 'chant-titre' }, c.titre, estNouveau(c) ? el('span', { class: 'badge', text: 'Nouveau' }) : null),
+      el('span', { class: 'chant-meta' }, points, meta.join(' · ')),
+      fleche()));
+  }
+
+  function dessinerListe() {
+    const box = $('liste-chants');
+    const q = simple($('cherche').value.trim());
+    const chants = D.chants.filter(c => !q || simple(c.titre + ' ' + c.groupe).includes(q));
+    if (!D.chants.length) {
+      box.replaceChildren(el('div', { class: 'vide' }, el('strong', { text: 'Aucun chant pour l’instant' }),
+        el('p', { class: 'aide', text: 'Les chefs de chœur ajoutent les chants dans leur dossier Drive ; ils apparaîtront ici.' })));
+      return;
+    }
+    if (!chants.length) {
+      box.replaceChildren(el('p', { class: 'aide', text: 'Aucun chant ne correspond à « ' + $('cherche').value.trim() + ' ».' }));
+      return;
+    }
+    const groupes = [];
+    chants.forEach(c => {
+      const g = groupes.find(x => x.nom === c.groupe);
+      if (g) g.chants.push(c); else groupes.push({ nom: c.groupe, chants: [c] });
+    });
+    const avecGroupe = groupes.some(g => g.nom);
+    box.replaceChildren(...groupes.map(g => el('section', { class: 'bloc' },
+      avecGroupe ? el('h2', { class: 'label', text: g.nom || 'Autres chants' }) : null,
+      el('ul', { class: 'liste' }, g.chants.map(ligneChant)))));
+  }
+  $('cherche').hidden = D.chants.length <= 8;
+  $('cherche').addEventListener('input', dessinerListe);
+
+  /* ---------- Lecteur ---------- */
+  const audio = $('audio');
+  const pos = $('position');
+  let chant = null, piste = null, glisse = false, vitesse = 1;
+  const boucle = { etat: 'off', a: 0, b: 0 };
+
+  function appliquerVitesse() {
+    audio.defaultPlaybackRate = vitesse;
+    audio.playbackRate = vitesse;
+    audio.preservesPitch = true; audio.mozPreservesPitch = true; audio.webkitPreservesPitch = true;
+  }
+
+  function dessinerOnglets() {
+    const presentes = new Set(chant.pistes.map(p => p.voix));
+    const avecStd = STANDARD.some(v => presentes.has(v));
+    const boutons = [];
+    STANDARD.forEach(v => {
+      const pv = chant.pistes.filter(p => p.voix === v);
+      if (!pv.length && avecStd) boutons.push(el('button', { class: 'onglet', 'data-voix': v, disabled: true, title: NOMS[v] + ' : pas encore d’enregistrement' }, el('span', { class: 'pastille' }), el('span', { text: NOMS[v] })));
+      pv.forEach(p => boutons.push(bouton(p)));
+    });
+    chant.pistes.filter(p => !STANDARD.includes(p.voix)).forEach(p => boutons.push(bouton(p)));
+    $('onglets').replaceChildren(...boutons);
+    $('onglets').hidden = chant.pistes.length < 2 && !avecStd;
+    function bouton(p) {
+      const b = el('button', { class: 'onglet', 'data-voix': p.voix, 'aria-pressed': String(p === piste), title: p.nom }, el('span', { class: 'pastille' }), el('span', { text: COURT[p.nom] || p.nom }));
+      b.addEventListener('click', () => choisirPiste(p));
+      return b;
+    }
+  }
+
+  function choisirPiste(p) {
+    if (p === piste) return;
+    const t = audio.currentTime || 0;
+    const enLecture = piste && !audio.paused;
+    const memeChant = piste && chant.pistes.includes(piste);
+    piste = p;
+    $('lecteur').dataset.voix = p.voix;
+    $('piste-nom').textContent = p.nom;
+    $('piste-duree').textContent = p.duree ? fmt(p.duree) : '';
+    $('erreur').hidden = true;
+    dessinerOnglets();
+    audio.src = p.src;
+    appliquerVitesse();
+    audio.addEventListener('loadedmetadata', function reprise() {
+      audio.removeEventListener('loadedmetadata', reprise);
+      if (memeChant && t) { try { audio.currentTime = Math.min(t, (audio.duration || t) - 0.1); } catch (e) {} }
+      appliquerVitesse();
+      majTout();
+      if (enLecture) audio.play().catch(() => {});
+    });
+    audio.load();
+    majMedia();
+    majTout();
+  }
+
+  function majMedia() {
+    if (!('mediaSession' in navigator) || !piste) return;
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({ title: chant.titre + ' · ' + piste.nom, artist: chant.groupe || D.nom, album: D.nom });
+    } catch (e) {}
+  }
+  if ('mediaSession' in navigator) {
+    const h = (a, f) => { try { navigator.mediaSession.setActionHandler(a, f); } catch (e) {} };
+    h('play', () => audio.play());
+    h('pause', () => audio.pause());
+    h('seekbackward', () => saut(-5));
+    h('seekforward', () => saut(5));
+    h('seekto', d => { audio.currentTime = d.seekTime; majTout(); });
+  }
+
+  function majBoutonLecture() {
+    const joue = !audio.paused;
+    $('ico-lire').hidden = joue;
+    $('ico-pause').hidden = !joue;
+    $('lecture').setAttribute('aria-label', joue ? 'Mettre en pause' : 'Lire');
+  }
+
+  function majZone() {
+    const d = audio.duration, zone = $('zone');
+    if (boucle.etat === 'off' || !isFinite(d) || !d) { zone.hidden = true; return; }
+    zone.hidden = false;
+    zone.classList.toggle('arme', boucle.etat === 'arme');
+    zone.style.left = (boucle.a / d * 100) + '%';
+    zone.style.width = boucle.etat === 'actif' ? ((boucle.b - boucle.a) / d * 100) + '%' : '2px';
+  }
+
+  function majBoucleUI() {
+    const btn = $('boucle'), stop = $('boucle-stop'), aide = $('boucle-aide');
+    if (boucle.etat === 'off') {
+      btn.hidden = false; btn.textContent = 'Marquer le début'; btn.classList.remove('plein');
+      stop.hidden = true;
+      aide.textContent = 'Pendant l’écoute, marque le début du passage puis sa fin : il se répète en boucle. Changer de voix garde ta position et ta boucle.';
+    } else if (boucle.etat === 'arme') {
+      btn.hidden = false; btn.textContent = 'Marquer la fin'; btn.classList.add('plein');
+      stop.hidden = false; stop.textContent = 'Annuler';
+      aide.textContent = 'Début à ' + fmt(boucle.a) + '. Touche « Marquer la fin » quand le passage est fini.';
+    } else {
+      btn.hidden = true;
+      stop.hidden = false; stop.textContent = 'Arrêter la boucle';
+      aide.textContent = 'Le passage de ' + fmt(boucle.a) + ' à ' + fmt(boucle.b) + ' se répète. Ralentis-le si besoin.';
+    }
+    majZone();
+  }
+
+  function majTout() {
+    const d = audio.duration, t = audio.currentTime || 0;
+    if (isFinite(d) && d > 0) {
+      pos.max = d.toFixed(2);
+      if (!glisse) pos.value = t;
+      $('fait').style.width = (t / d * 100) + '%';
+      $('t-total').textContent = fmt(d);
+    } else {
+      $('fait').style.width = '0';
+      $('t-total').textContent = piste && piste.duree ? fmt(piste.duree) : '–:––';
+      if (!glisse) pos.value = 0;
+    }
+    $('t-courant').textContent = fmt(glisse ? +pos.value : t);
+    majZone();
+  }
+
+  function verifierBoucle() {
+    if (boucle.etat === 'actif' && audio.currentTime >= boucle.b) audio.currentTime = boucle.a;
+  }
+  function animer() {
+    verifierBoucle();
+    majTout();
+    if (!audio.paused) requestAnimationFrame(animer);
+  }
+
+  audio.addEventListener('play', () => { majBoutonLecture(); requestAnimationFrame(animer); });
+  audio.addEventListener('pause', majBoutonLecture);
+  audio.addEventListener('ended', () => { majBoutonLecture(); majTout(); });
+  audio.addEventListener('loadedmetadata', majTout);
+  audio.addEventListener('timeupdate', () => { verifierBoucle(); if (audio.paused || document.hidden) majTout(); });
+  audio.addEventListener('error', () => { if (audio.getAttribute('src')) $('erreur').hidden = false; });
+
+  $('lecture').addEventListener('click', () => {
+    if (audio.paused) {
+      if (boucle.etat === 'actif' && (audio.currentTime < boucle.a || audio.currentTime >= boucle.b)) audio.currentTime = boucle.a;
+      audio.play().catch(() => {});
+    } else audio.pause();
+  });
+  function saut(dt) {
+    const d = audio.duration || 0;
+    audio.currentTime = Math.min(Math.max(0, (audio.currentTime || 0) + dt), d ? d - 0.05 : 0);
+    majTout();
+  }
+  $('recul').addEventListener('click', () => saut(-5));
+  $('avance').addEventListener('click', () => saut(5));
+  pos.addEventListener('input', () => { glisse = true; majTout(); });
+  pos.addEventListener('change', () => { audio.currentTime = +pos.value; glisse = false; majTout(); });
+
+  $('vitesse').addEventListener('click', e => {
+    const b = e.target.closest('button[data-v]');
+    if (!b) return;
+    vitesse = +b.dataset.v;
+    appliquerVitesse();
+    $('vitesse').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  });
+
+  $('boucle').addEventListener('click', () => {
+    const t = audio.currentTime || 0;
+    if (boucle.etat === 'off') { boucle.a = t; boucle.etat = 'arme'; }
+    else if (boucle.etat === 'arme') {
+      if (t <= boucle.a + 0.5) { $('boucle-aide').textContent = 'La fin doit venir après le début (' + fmt(boucle.a) + '). Laisse jouer, puis touche à nouveau.'; return; }
+      boucle.b = t; boucle.etat = 'actif'; audio.currentTime = boucle.a;
+    }
+    majBoucleUI();
+  });
+  $('boucle-stop').addEventListener('click', () => { boucle.etat = 'off'; majBoucleUI(); });
+
+  document.addEventListener('keydown', e => {
+    if ($('vue-chant').hidden || !piste || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.target.closest('input, textarea, select')) return;
+    if (e.key === ' ' && !e.target.closest('button')) { e.preventDefault(); $('lecture').click(); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); saut(-5); }
+    else if (e.key === 'ArrowRight') { e.preventDefault(); saut(5); }
+  });
+
+  /* ---------- Page d'un chant ---------- */
+  function ouvrirChant(c) {
+    if (chant !== c) {
+      audio.pause();
+      boucle.etat = 'off';
+      majBoucleUI();
+      chant = c;
+      piste = null;
+      $('chant-groupe').textContent = c.groupe;
+      $('chant-groupe').hidden = !c.groupe;
+      $('chant-titre').textContent = c.titre;
+      document.title = c.titre + ' · ' + D.nom;
+      $('chant-maj').textContent = 'Mis à jour le ' + dateLongue(c.maj) + '.';
+      const aAudio = c.pistes.length > 0;
+      $('lecteur').hidden = !aAudio;
+      $('onglets').hidden = !aAudio;
+      $('sans-audio').hidden = aAudio;
+      if (aAudio) {
+        choisirPiste(c.pistes.find(p => p.voix === monPupitre) || c.pistes[0]);
+      } else {
+        audio.removeAttribute('src');
+        audio.load();
+      }
+      dessinerPartitions(c);
+    }
+  }
+
+  function dessinerPartitions(c) {
+    const box = $('partitions');
+    if (!c.partitions.length) { box.replaceChildren(el('p', { class: 'aide', text: 'Pas encore de partition pour ce chant.' })); return; }
+    const plusieurs = c.partitions.length > 1;
+    box.replaceChildren(...c.partitions.map(p => {
+      const pages = el('div', { class: 'pages' }, p.pages.map((pg, i) =>
+        el('a', { href: pg.src, target: '_blank', rel: 'noopener', 'aria-label': 'Page ' + (i + 1) + ' en grand' },
+          el('img', { src: pg.src, width: pg.l, height: pg.h, loading: i ? 'lazy' : 'eager', alt: 'Partition, page ' + (i + 1) }))));
+      const zoom = el('button', { class: 'bouton', type: 'button', text: 'Agrandir' });
+      zoom.addEventListener('click', () => { const z = pages.classList.toggle('zoom'); zoom.textContent = z ? 'Réduire' : 'Agrandir'; });
+      const nbPages = p.pages.length + (p.pages.length > 1 ? ' pages' : ' page');
+      return el('section', { class: 'bloc' },
+        el('div', { class: 'partition-tete' }, el('h2', { text: plusieurs ? p.nom : 'Partition' }), el('span', { class: 'aide', text: (p.pdf ? 'PDF · ' : '') + nbPages })),
+        pages,
+        el('div', { class: 'partition-actions' }, zoom,
+          p.pdf ? el('a', { class: 'bouton discret', href: p.pdf, target: '_blank', rel: 'noopener', text: 'Ouvrir le PDF' }) : null));
+    }));
+  }
+
+  /* ---------- Page des chefs ---------- */
+  function dessinerChefs() {
+    const a = D.alertes || [];
+    $('bloc-alertes').hidden = !a.length;
+    $('alertes').replaceChildren(...a.map(x => el('li', {}, (x.chant ? x.chant + ' / ' : '') + x.fichier, el('span', { text: x.raison }))));
+    $('chefs-maj').textContent = D.maj ? 'Dernier ajout lu dans le Drive : le ' + dateLongue(D.maj) + '.' : '';
+  }
+
+  /* ---------- Navigation ---------- */
+  function afficher() {
+    const h = decodeURIComponent(location.hash.slice(1));
+    const c = h.startsWith('c-') ? D.chants.find(x => x.slug === h.slice(2)) : null;
+    const vue = c ? 'chant' : h === 'chefs' ? 'chefs' : 'accueil';
+    $('vue-accueil').hidden = vue !== 'accueil';
+    $('vue-chant').hidden = vue !== 'chant';
+    $('vue-chefs').hidden = vue !== 'chefs';
+    if (vue === 'chant') ouvrirChant(c);
+    else { audio.pause(); document.title = D.nom + ' · Répertoire'; }
+    if (vue === 'accueil') { dessinerMonPupitre(); dessinerListe(); }
+    $('pied').hidden = vue !== 'accueil' || !D.maj;
+    if (vue === 'chefs') dessinerChefs();
+    window.scrollTo(0, 0);
+  }
+
+  majBoucleUI();
+  window.addEventListener('hashchange', afficher);
+  afficher();
+})();
+</script>
+</body>
+</html>
