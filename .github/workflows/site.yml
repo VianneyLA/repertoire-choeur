@@ -54,7 +54,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .cache
-          key: medias-${{ hashFiles('manifest.json') }}
+          key: medias-${{ hashFiles('manifest.json', 'construire.py') }}
           restore-keys: medias-
 
       - name: Compter les calculs à faire

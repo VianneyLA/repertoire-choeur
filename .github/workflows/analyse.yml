@@ -23,7 +23,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: .cache
-          key: medias-${{ hashFiles('manifest.json') }}
+          key: medias-${{ hashFiles('manifest.json', 'construire.py') }}
           restore-keys: medias-
 
       - name: Installer ffmpeg, poppler et numpy
