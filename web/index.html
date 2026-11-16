@@ -207,7 +207,7 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
 .reperes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .repere { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; border-radius: 10px; background: var(--soft); }
 .repere-nom { font-size: 14px; font-weight: 700; display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
-.repere-nom code { font: 500 16px/1 var(--font-mono); font-variant-numeric: tabular-nums; }
+.saisie-temps { width: 92px; padding: 5px 8px; border-radius: 8px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); font: 500 16px/1.2 var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; }
 .repere-btns { display: flex; gap: 4px; flex-wrap: wrap; }
 .sortie { margin: 0; padding: 14px 16px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); font: 500 13.5px/1.7 var(--font-mono); overflow-x: auto; white-space: pre; }
 
@@ -341,6 +341,7 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
     </div>
     <p class="texte"><strong>Début du chant</strong> : la première note chantée. Tout ce qui précède (l'annonce, le décompte) est coupé à l'écoute. Écoutez un peu avant, puis touchez « Placer ici » au moment où la voix attaque.</p>
     <p class="texte"><strong>Pour écouter les voix ensemble</strong>, le site fait coïncider les débuts, les fins et, si besoin, des repères au milieu : une attaque que toutes les voix font ensemble. Entre deux repères, il accélère ou ralentit un peu chaque voix, sans changer la hauteur.</p>
+    <p class="texte"><strong>Pour placer un repère</strong> : lancez l'écoute, mettez en pause quand la voix attaque, puis touchez « Placer ici ». Vous pouvez aussi taper le temps directement (par exemple 0:08,6). « Écouter d'ici » joue à partir du repère : on doit entendre l'attaque tout de suite.</p>
     <p class="aide" id="calage-etat"></p>
     <div class="cartes-calage" id="cartes-calage"></div>
     <div class="partition-actions">
@@ -1047,10 +1048,19 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
       bp2.addEventListener('click', () => { AC.currentTime = AC.currentTime + 2; majChrono(); });
       const ordreOk = cal.temps[i].every((t, k, a) => k === 0 || t - a[k - 1] >= 0.5);
       const reperes = el('ol', { class: 'reperes' }, cal.temps[i].map((t, k) => {
-        const bEcouter = el('button', { class: 'bouton petit', type: 'button', text: 'Écouter' });
-        bEcouter.addEventListener('click', () => ecouterCalage(i, Math.max(0, t - 1.5)));
-        const bIci = el('button', { class: 'bouton petit', type: 'button', text: 'Placer ici', disabled: !actif, title: actif ? '' : 'Lance d’abord l’écoute de cette voix' });
-        bIci.addEventListener('click', () => { cal.temps[i][k] = Math.round(AC.currentTime * 10) / 10; dessinerCalage(); });
+        const fin = k === n - 1;
+        // Un début s'écoute à partir du repère : on doit entendre l'attaque tout de suite, ni la fin de
+        // l'annonce, ni le milieu d'une note. Une fin s'écoute depuis 3 s avant.
+        const bEcouter = el('button', { class: 'bouton petit', type: 'button', text: fin ? 'Écouter la fin' : 'Écouter d’ici' });
+        bEcouter.addEventListener('click', () => ecouterCalage(i, fin ? Math.max(0, t - 3) : t));
+        const bIci = el('button', { class: 'bouton petit', type: 'button', text: 'Placer ici', disabled: !actif, title: actif ? 'Place le repère à la position du chrono' : 'Lance d’abord l’écoute de cette voix' });
+        bIci.addEventListener('click', () => { AC.pause(); cal.temps[i][k] = Math.round(AC.currentTime * 10) / 10; dessinerCalage(); });
+        const saisie = el('input', { class: 'saisie-temps', type: 'text', inputmode: 'decimal', value: fmtFin(t), 'aria-label': nomRepere(k, n) + ' de ' + p.nom + ', en minutes:secondes' });
+        saisie.addEventListener('change', () => {
+          const v = lireTemps(saisie.value);
+          if (isFinite(v) && v >= 0) cal.temps[i][k] = Math.round(v * 10) / 10;
+          dessinerCalage();
+        });
         const bMoins = el('button', { class: 'bouton petit discret', type: 'button', text: '−0,1', 'aria-label': 'Reculer le repère de 0,1 seconde' });
         const bPlus = el('button', { class: 'bouton petit discret', type: 'button', text: '+0,1', 'aria-label': 'Avancer le repère de 0,1 seconde' });
         bMoins.addEventListener('click', () => { cal.temps[i][k] = Math.max(0, Math.round((t - 0.1) * 10) / 10); dessinerCalage(); });
@@ -1058,7 +1068,7 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
         const bRetirer = (k > 0 && k < n - 1) ? el('button', { class: 'bouton petit discret', type: 'button', text: 'Retirer', 'aria-label': 'Retirer ce repère pour toutes les voix' }) : null;
         if (bRetirer) bRetirer.addEventListener('click', () => { cal.temps.forEach(ts => ts.splice(k, 1)); dessinerCalage(); });
         return el('li', { class: 'repere' },
-          el('span', { class: 'repere-nom' }, nomRepere(k, n), el('code', { text: fmtFin(t) })),
+          el('span', { class: 'repere-nom' }, nomRepere(k, n), saisie),
           el('span', { class: 'repere-btns' }, bEcouter, bIci, bMoins, bPlus, bRetirer));
       }));
       return el('div', { class: 'carte-calage', 'data-voix': p.voix },
@@ -1071,6 +1081,13 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
     }));
     $('calage-texte').textContent = texteCalage();
     $('ajout-repere').hidden = cal.pistes.length < 2;
+  }
+
+  function lireTemps(s) {
+    s = String(s).trim().replace(',', '.');
+    if (!s) return NaN;
+    if (s.includes(':')) { const [m, sec] = s.split(':'); return (+m) * 60 + (+sec); }
+    return +s;
   }
 
   function texteCalage() {
