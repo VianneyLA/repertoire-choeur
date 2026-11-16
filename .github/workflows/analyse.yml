@@ -38,3 +38,6 @@ jobs:
         run: |
           python3 outils/analyser_voix.py _site | tee -a "$GITHUB_STEP_SUMMARY"
           python3 outils/analyser_voix.py _site --calees | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Début de chaque piste
+        run: python3 outils/diagnostic_debut.py _site 45

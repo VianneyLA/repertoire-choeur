@@ -425,26 +425,26 @@ def convertir(f: dict, cle_api: str | None) -> dict | None:
     return en_cache(CACHE / cle_cache(f), fabriquer)
 
 
-def detecter_notes(mp3: Path) -> dict:
-    """Première et dernière note chantée d'une piste : début de la première note tenue (hauteur stable
-    au moins 0,3 s, chantée assez fort), fin de la dernière. Une annonce parlée, des claquements ou un
-    décompte n'en sont pas : la parole ne tient pas sa hauteur, un claquement ne dure pas."""
+def trames_voix(mp3: Path) -> dict:
+    """Analyse une piste par trames de 10 ms : niveau (dB sous le maximum), hauteur (demi-tons depuis le la 440),
+    voix chantée ou parlée (son périodique), part de souffle aigu (les consonnes « s », « ch », « t »)."""
     import numpy as np
 
     sr, hop, n = 11025, 110, 512
     brut = subprocess.run(["ffmpeg", "-v", "error", "-i", str(mp3), "-ac", "1", "-ar", str(sr), "-f", "f32le", "-"],
                           capture_output=True, check=True).stdout
     x = np.frombuffer(brut, dtype="<f4").astype(np.float64)
-    if len(x) < sr:
-        return {"debut": 0.0, "fin": len(x) / sr, "sur": False}
     toutes = np.lib.stride_tricks.sliding_window_view(np.pad(x, (0, n)), n)[::hop]
     lmin, lmax = int(sr / 1000), int(sr / 70)
-    db, lag, nettete = [], [], []
+    coupe = int(3000 / sr * 2 * n)   # rang du 3 kHz dans le spectre
+    db, lag, nettete, aigu = [], [], [], []
     for b in range(0, len(toutes), 2000):
         trames = toutes[b: b + 2000]
         trames = trames - trames.mean(axis=1, keepdims=True)
         db.append(10 * np.log10((trames ** 2).mean(axis=1) + 1e-12))
-        auto = np.fft.irfft(np.abs(np.fft.rfft(trames * np.hanning(n), 2 * n, axis=1)) ** 2, axis=1)[:, :lmax]
+        spectre = np.abs(np.fft.rfft(trames * np.hanning(n), 2 * n, axis=1)) ** 2
+        aigu.append(spectre[:, coupe:].sum(axis=1) / (spectre.sum(axis=1) + 1e-12))
+        auto = np.fft.irfft(spectre, axis=1)[:, :lmax]
         auto /= auto[:, :1] + 1e-12
         l = lmin + np.argmax(auto[:, lmin:lmax], axis=1)
         rangs = np.arange(len(auto))
@@ -454,12 +454,19 @@ def detecter_notes(mp3: Path) -> dict:
         net = np.where(sous > 0.8 * net, 0.0, net)
         lag.append(l)
         nettete.append(net)
-    db, lag, nettete = np.concatenate(db), np.concatenate(lag), np.concatenate(nettete)
+    db, lag, nettete, aigu = (np.concatenate(v) for v in (db, lag, nettete, aigu))
     db -= np.percentile(db, 99)
     demi_tons = 12 * np.log2(sr / lag / 440)
-    voisee = (nettete > 0.55) & (db > -28)
+    return {"db": db, "demi_tons": demi_tons, "voisee": (nettete > 0.55) & (db > -28), "aigu": aigu,
+            "fps": sr / hop, "duree": len(x) / sr}
 
-    tenues, i, fps = [], 0, sr / hop
+
+def notes_tenues(a: dict, duree_min: float = 0.3) -> list[tuple[int, int]]:
+    """Notes tenues : trames voisées consécutives, hauteur stable (vibrato compris), chantées assez fort."""
+    import numpy as np
+
+    voisee, demi_tons, db, fps = a["voisee"], a["demi_tons"], a["db"], a["fps"]
+    tenues, i = [], 0
     while i < len(voisee):
         if not voisee[i]:
             i += 1
@@ -467,13 +474,26 @@ def detecter_notes(mp3: Path) -> dict:
         j = i
         while j + 1 < len(voisee) and voisee[j + 1] and abs(demi_tons[j + 1] - demi_tons[j]) < 0.8:
             j += 1
-        if (j - i + 1) / fps >= 0.3 and np.ptp(demi_tons[i: j + 1]) < 1.6 and np.median(db[i: j + 1]) > -20:
+        if (j - i + 1) / fps >= duree_min and np.ptp(demi_tons[i: j + 1]) < 1.6 and np.median(db[i: j + 1]) > -20:
             tenues.append((i, j))
         i = j + 1
+    return tenues
+
+
+def detecter_notes(mp3: Path) -> dict:
+    """Première et dernière note chantée d'une piste : début de la première note tenue (hauteur stable
+    au moins 0,3 s, chantée assez fort), fin de la dernière. Une annonce parlée, des claquements ou un
+    décompte n'en sont pas : la parole ne tient pas sa hauteur, un claquement ne dure pas."""
+    a = trames_voix(mp3)
+    db, fps = a["db"], a["fps"]
+    if a["duree"] < 1:
+        return {"debut": 0.0, "fin": a["duree"], "sur": False}
+    tenues = notes_tenues(a)
     if not tenues:
+        import numpy as np
         actif = np.nonzero(db > -30)[0]
         return {"debut": float(actif[0] / fps) if len(actif) else 0.0,
-                "fin": float(actif[-1] / fps) if len(actif) else len(x) / sr, "sur": False}
+                "fin": float(actif[-1] / fps) if len(actif) else a["duree"], "sur": False}
     debut, fin = tenues[0][0], tenues[-1][1]
     while debut > 0 and db[debut - 1] > db[tenues[0][0]] - 15 and debut > tenues[0][0] - int(0.12 * fps):
         debut -= 1   # l'attaque de la note, un peu avant que la hauteur se stabilise
