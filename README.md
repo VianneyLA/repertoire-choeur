@@ -4,7 +4,7 @@ Le site où les choristes travaillent leur voix, chant par chant, sur téléphon
 La page d'un chant montre la partition en plein écran ; tout ce qui sert à répéter tient dans la barre du bas :
 la piste avec son volume (on y voit les respirations et les passages forts ; on la touche pour se placer, on
 glisse dessus pour choisir un passage), la façon d'écouter (seule, en avant, tutti, sans moi), la vitesse et la
-boucle sur la phrase en cours.
+boucle, dont on marque le début puis la fin pendant l'écoute.
 
 Quand un chant a plusieurs voix, on peut aussi les écouter ensemble : sa voix en avant, tout le chœur, ou
 toutes les voix sauf la sienne, avec un volume par voix.

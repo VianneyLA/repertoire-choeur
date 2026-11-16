@@ -158,10 +158,14 @@ html.fige, html.fige body { overflow: hidden; }
   margin-left: max(14px, env(safe-area-inset-left, 0px)); margin-right: max(14px, env(safe-area-inset-right, 0px)); }
 .onde canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .poignee { position: absolute; top: 0; bottom: 0; width: 44px; margin-left: -22px; touch-action: none; cursor: ew-resize; z-index: 2; }
-.poignee span { position: absolute; top: 0; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--bg); font: 500 11px/1 var(--font-mono); padding: 4px 6px; border-radius: 6px; white-space: nowrap; box-shadow: 0 1px 3px rgb(0 0 0 / .25); }
+.poignee span { position: absolute; top: 0; left: 0; background: var(--ink); color: var(--bg); font: 500 11px/1 var(--font-mono); padding: 4px 6px; border-radius: 6px; white-space: nowrap; box-shadow: 0 1px 3px rgb(0 0 0 / .25); }
 .onde .chargement { position: absolute; inset: 18px 0 0; margin: 0; display: flex; align-items: center; justify-content: center; font-size: 13.5px; font-weight: 700; color: var(--muted); background: color-mix(in srgb, var(--surface) 82%, transparent); border-radius: 8px; }
-.temps { display: flex; justify-content: space-between; margin-top: -6px; font: 500 13px/1 var(--font-mono); font-variant-numeric: tabular-nums; color: var(--muted);
+.temps { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: -6px; font: 500 13px/1 var(--font-mono); font-variant-numeric: tabular-nums; color: var(--muted);
   padding-left: max(14px, env(safe-area-inset-left, 0px)); padding-right: max(14px, env(safe-area-inset-right, 0px)); }
+.boucle-etat { flex: 1; min-width: 0; display: flex; justify-content: center; align-items: center; gap: 4px; font: 700 12.5px/1.2 var(--font-body); color: var(--c); white-space: nowrap; }
+.boucle-etat[hidden] { display: none; }
+.boucle-etat span { overflow: hidden; text-overflow: ellipsis; }
+.boucle-etat button { flex: none; border: 0; background: transparent; color: var(--muted); font: inherit; text-decoration: underline; text-underline-offset: 2px; padding: 8px 6px; margin-block: -8px; }
 .erreur-dock { margin: 0; font-size: 13.5px; color: var(--alerte); padding-left: max(14px, env(safe-area-inset-left, 0px)); padding-right: max(14px, env(safe-area-inset-right, 0px)); }
 .seg { flex: 1; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 3px; padding: 3px; background: var(--soft); border-radius: 11px; }
 .seg button { border: 0; background: transparent; border-radius: 8px; padding: 8px 2px; font-size: 13.5px; font-weight: 700; min-height: 38px; line-height: 1.1; }
@@ -171,7 +175,10 @@ html.fige, html.fige body { overflow: hidden; }
   padding-left: max(14px, env(safe-area-inset-left, 0px)); padding-right: max(14px, env(safe-area-inset-right, 0px)); }
 .tbtn { width: 58px; border: 0; background: transparent; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; font-weight: 700; color: var(--muted); padding: 4px 0; border-radius: 12px; }
 .tbtn svg { width: 26px; height: 26px; color: var(--ink); }
-.tbtn[aria-pressed="true"], .tbtn[aria-pressed="true"] svg { color: var(--c); }
+.tbtn[aria-pressed="true"], .tbtn[aria-pressed="true"] svg, .tbtn[data-etat="arme"], .tbtn[data-etat="arme"] svg { color: var(--c); }
+.tbtn[data-etat="arme"] svg { animation: battre 1.1s ease-in-out infinite; }
+@keyframes battre { 50% { opacity: .3; } }
+@media (prefers-reduced-motion: reduce) { .tbtn[data-etat="arme"] svg { animation: none; } }
 .lire { width: 72px; height: 72px; border-radius: 50%; border: 0; background: var(--c); color: var(--on-accent); display: grid; place-items: center; flex: none; box-shadow: 0 4px 14px color-mix(in srgb, var(--c) 35%, transparent); }
 .lire svg { width: 30px; height: 30px; }
 .lire:disabled { opacity: .45; }
@@ -251,7 +258,7 @@ html.fige, html.fige body { overflow: hidden; }
           <div class="poignee" data-k="1" hidden><span></span></div>
           <p class="chargement" id="chargement" hidden></p>
         </div>
-        <div class="temps"><span id="t-courant">0:00</span><span id="t-total">–:––</span></div>
+        <div class="temps"><span id="t-courant">0:00</span><span class="boucle-etat" id="boucle-etat" hidden><span id="boucle-texte"></span><button type="button" id="boucle-annuler">Annuler</button></span><span id="t-total">–:––</span></div>
         <p class="erreur-dock" id="erreur" hidden></p>
         <div class="dock-ligne">
           <span class="aide" id="aide-geste">Touche la piste pour te placer, glisse dessus pour choisir un passage.</span>
@@ -266,7 +273,7 @@ html.fige, html.fige body { overflow: hidden; }
             <svg viewBox="0 0 24 24" id="ico-pause" aria-hidden="true" hidden><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" fill="currentColor"/></svg>
           </button>
           <button class="tbtn" id="avance" type="button" aria-label="Avancer de 5 secondes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5a7 7 0 1 0 6.6 4.7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M20 4v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>+5 s</span></button>
-          <button class="tbtn" id="boucle-btn" type="button" aria-pressed="false" aria-label="Répéter la phrase en cours"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3l3 3-3 3M4 11V9a3 3 0 0 1 3-3h13M7 21l-3-3 3-3M20 13v2a3 3 0 0 1-3 3H4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Boucle</span></button>
+          <button class="tbtn" id="boucle-btn" type="button" aria-pressed="false" aria-label="Marquer le début de la boucle"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3l3 3-3 3M4 11V9a3 3 0 0 1 3-3h13M7 21l-3-3 3-3M20 13v2a3 3 0 0 1-3 3H4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="boucle-label">Boucle</span></button>
         </div>
       </div>
     </div>
@@ -607,6 +614,8 @@ html.fige, html.fige body { overflow: hidden; }
   const VITESSES = [1, 0.75, 0.5];
   let chant = null, piste = null, mode = 'seule', vitesse = 1, occupe = false;
   let boucle = null;          // [début, fin] dans le temps du moteur en cours, ou null
+  let debutMarque = null;     // début de boucle marqué, en attendant la fin
+  let avisBoucle = null;      // { texte, jusqua } : un mot bref sous la piste
   let volumes = null;         // volume de chaque piste, lu à l'ouverture du chant
   let autresEnv = null;       // volume des autres voix (le plus fort des autres), pour la piste en cours
   const moteur = () => mode === 'seule' ? A : B;
@@ -703,6 +712,7 @@ html.fige, html.fige body { overflow: hidden; }
     ancien.pause();
     mode = m;
     if (boucle) boucle = [conv(boucle[0]), conv(boucle[1])];
+    if (debutMarque != null) debutMarque = conv(debutMarque);
     if (m === 'seule') {
       await A.charger(piste.src, piste.coupe);
       A.aller(conv(t));
@@ -726,6 +736,7 @@ html.fige, html.fige body { overflow: hidden; }
     // Changer de voix garde la position musicale : on passe par le temps commun du mélange.
     const conv = x => (ancienne && ancienne.mix && p.mix) ? versPiste(p, versMix(ancienne, x)) : x;
     if (boucle) boucle = [conv(boucle[0]), conv(boucle[1])];
+    if (debutMarque != null) debutMarque = conv(debutMarque);
     piste = p;
     calculerAutres(); majEntete(); dessinerMelange();
     A.pause();
@@ -756,23 +767,6 @@ html.fige, html.fige body { overflow: hidden; }
       { env: volumes.mix[i], decal: 0, couleur: piste.voix, alpha: mode === 'sans' ? 0.35 : 1 },
     ];
   }
-  // Phrases de ma voix : passages chantés entre deux respirations d'au moins 0,3 s.
-  function phrasesActuelles() {
-    const c = couches().find(x => x.couleur !== 'neutre');
-    if (!c || !c.env || !c.env.length) return [];
-    const pas = volumes.pas, env = c.env, res = [];
-    let i = 0;
-    while (i < env.length) {
-      if (env[i] <= 22) { i++; continue; }
-      let j = i, trou = 0;
-      while (j + 1 < env.length) { if (env[j + 1] > 22) trou = 0; else if (++trou > 3) break; j++; }
-      const fin = j - trou;
-      if ((fin - i + 1) * pas >= 1) res.push([i * pas - c.decal, (fin + 1) * pas - c.decal]);
-      i = j + 1;
-    }
-    return res.filter(p => p[1] > 0);
-  }
-
   const couleur = n => getComputedStyle(document.documentElement).getPropertyValue('--' + n).trim();
   function dessinerOnde() {
     const cv = $('onde-canvas'), r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
@@ -785,6 +779,7 @@ html.fige, html.fige body { overflow: hidden; }
     const poignees = $('onde').querySelectorAll('.poignee');
     if (!isFinite(D) || !D) { poignees.forEach(p => { p.hidden = true; }); return; }
     const pos = moteur().position(), x = t => t / D * W;
+    const marques = boucle || (debutMarque != null ? [debutMarque] : []);
     if (boucle) { g.fillStyle = couleur('boucle'); g.fillRect(x(boucle[0]), haut, x(boucle[1]) - x(boucle[0]), h); }
     const larg = 3, nb = Math.floor(W / larg), pas = volumes ? volumes.pas : 0.1;
     couches().forEach(c => {
@@ -802,13 +797,20 @@ html.fige, html.fige body { overflow: hidden; }
     });
     g.globalAlpha = 1;
     g.fillStyle = couleur('ink');
-    if (boucle) [boucle[0], boucle[1]].forEach(t => g.fillRect(Math.round(x(t)) - 1, haut, 2, h));
+    marques.forEach(t => g.fillRect(Math.round(x(t)) - 1, haut, 2, h));
     g.fillRect(Math.round(x(Math.min(pos, D))) - 1, haut, 2, h);
+    let finGauche = -Infinity;
     poignees.forEach(p => {
-      if (!boucle) { p.hidden = true; return; }
       const k = +p.dataset.k;
-      p.hidden = false; p.style.left = x(boucle[k]) + 'px';
-      p.querySelector('span').textContent = fmt(boucle[k]);
+      if (marques[k] == null) { p.hidden = true; return; }
+      const X = x(marques[k]), span = p.querySelector('span');
+      p.hidden = false; p.style.left = X + 'px';
+      span.textContent = fmt(marques[k]);
+      const w = span.offsetWidth;
+      let g = k === 0 ? 1 - w : -1;
+      g = Math.max(-X, finGauche + 2 - X, Math.min(W - X - w, g));
+      span.style.left = (22 + g) + 'px';
+      finGauche = X + g + w;
     });
   }
 
@@ -831,9 +833,11 @@ html.fige, html.fige body { overflow: hidden; }
       if (geste.poignee != null && boucle) {
         const b = boucle.slice(); b[geste.poignee] = t;
         if (b[1] - b[0] >= 0.5) boucle = b;
+      } else if (geste.poignee === 0 && debutMarque != null) {
+        debutMarque = t;
       } else if (geste.poignee == null) {
         const a = Math.min(geste.t0, t), z = Math.max(geste.t0, t);
-        if (z - a >= 0.5) boucle = [a, z];
+        if (z - a >= 0.5) { boucle = [a, z]; debutMarque = null; }
       }
       majTout();
     });
@@ -853,13 +857,18 @@ html.fige, html.fige body { overflow: hidden; }
     if (mode !== 'seule') B.boucle(boucle);
     if (boucle) { const p = moteur().position(); if (p < boucle[0] || p > boucle[1]) moteur().aller(boucle[0]); }
   }
-  function basculerBoucle() {
-    if (boucle) { boucle = null; if (mode !== 'seule') B.boucle(null); majTout(); return; }
-    const p = moteur().position(), D = dureeCourante() || 0, ph = phrasesActuelles();
-    // Une « phrase » de plus de 20 s veut dire que les respirations ne se voient pas : on boucle 8 s autour de soi.
-    const cible = (ph.find(x => p >= x[0] - 0.4 && p < x[1] + 0.4) || ph.find(x => x[0] > p));
-    boucle = cible && cible[1] - cible[0] <= 20 ? [Math.max(0, cible[0] - 0.4), Math.min(D, cible[1] + 0.35)]
-      : [Math.max(0, p - 1), Math.min(D, Math.max(0, p - 1) + 8)];
+  function arreterBoucle() {
+    boucle = null; debutMarque = null; avisBoucle = null;
+    if (mode !== 'seule') B.boucle(null);
+    majTout();
+  }
+  function toucherBoucle() {
+    if (boucle) { arreterBoucle(); return; }
+    const p = moteur().position();
+    if (debutMarque == null) { debutMarque = p; avisBoucle = null; majTout(); return; }
+    if (Math.abs(p - debutMarque) < 0.5) { avisBoucle = { texte: 'Laisse jouer le passage, puis Fin', jusqua: Date.now() + 2500 }; majTout(); setTimeout(majTout, 2600); return; }
+    boucle = [Math.min(p, debutMarque), Math.max(p, debutMarque)];
+    debutMarque = null; avisBoucle = null;
     appliquerBoucle();
     moteur().aller(boucle[0]);
     majTout();
@@ -897,8 +906,8 @@ html.fige, html.fige body { overflow: hidden; }
 
   function majBoutonLecture() {
     const joue = moteur().enLecture();
-    $('ico-lire').hidden = joue;
-    $('ico-pause').hidden = !joue;
+    $('ico-lire').toggleAttribute('hidden', joue);
+    $('ico-pause').toggleAttribute('hidden', !joue);
     $('lecture').setAttribute('aria-label', joue ? 'Mettre en pause' : 'Lire');
     $('lecture').disabled = occupe;
     if ('mediaSession' in navigator) { try { navigator.mediaSession.playbackState = joue ? 'playing' : 'paused'; } catch (e) {} }
@@ -908,10 +917,21 @@ html.fige, html.fige body { overflow: hidden; }
     const d = dureeCourante(), t = moteur().position();
     $('t-courant').textContent = fmt(Math.min(t, isFinite(d) ? d : t));
     $('t-total').textContent = isFinite(d) ? fmt(d) : '–:––';
-    $('boucle-btn').setAttribute('aria-pressed', String(!!boucle));
-    $('boucle-btn').setAttribute('aria-label', boucle ? 'Arrêter la boucle' : 'Répéter la phrase en cours');
+    majBoucle();
     $('vitesse-btn').textContent = String(vitesse).replace('.', ',') + '×';
     dessinerOnde();
+  }
+
+  function majBoucle() {
+    const btn = $('boucle-btn'), etat = $('boucle-etat'), arme = !boucle && debutMarque != null;
+    btn.setAttribute('aria-pressed', String(!!boucle));
+    btn.dataset.etat = boucle ? 'actif' : arme ? 'arme' : '';
+    btn.setAttribute('aria-label', boucle ? 'Arrêter la boucle' : arme ? 'Marquer la fin de la boucle' : 'Marquer le début de la boucle');
+    $('boucle-label').textContent = arme ? 'Fin' : 'Boucle';
+    if (avisBoucle && Date.now() > avisBoucle.jusqua) avisBoucle = null;
+    etat.hidden = !boucle && !arme;
+    $('boucle-texte').textContent = avisBoucle ? avisBoucle.texte : boucle ? 'En boucle' : 'Début ' + fmt(debutMarque) + ' · touche Fin';
+    $('boucle-annuler').textContent = boucle ? 'Arrêter' : 'Annuler';
   }
 
   A.audio.addEventListener('play', () => { if (mode === 'seule') { majBoutonLecture(); lancerAnimation(); } });
@@ -933,7 +953,8 @@ html.fige, html.fige body { overflow: hidden; }
   $('recul').addEventListener('click', () => saut(-5));
   $('avance').addEventListener('click', () => saut(5));
   $('debut').addEventListener('click', () => { moteur().aller(boucle ? boucle[0] : 0); majTout(); });
-  $('boucle-btn').addEventListener('click', basculerBoucle);
+  $('boucle-btn').addEventListener('click', toucherBoucle);
+  $('boucle-annuler').addEventListener('click', arreterBoucle);
 
   async function changerVitesse(v) {
     if (occupe || v === vitesse) return;
@@ -977,7 +998,7 @@ html.fige, html.fige body { overflow: hidden; }
   function ouvrirChant(c) {
     if (chant === c) { requestAnimationFrame(majTout); return; }
     A.pause(); B.vider(); liberer(); fermerMenu();
-    chant = c; piste = null; mode = 'seule'; boucle = null; volumes = null; autresEnv = null;
+    chant = c; piste = null; mode = 'seule'; boucle = null; debutMarque = null; avisBoucle = null; volumes = null; autresEnv = null;
     $('chant-groupe').textContent = c.groupe;
     $('chant-groupe').hidden = !c.groupe;
     $('chant-titre').textContent = c.titre;
