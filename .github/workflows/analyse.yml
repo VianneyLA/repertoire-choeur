@@ -1,0 +1,38 @@
+# À lancer à la main : mesure si les pistes de chaque chant sont calées entre elles.
+name: Analyser le calage des voix
+
+on:
+  workflow_dispatch:
+
+jobs:
+  analyser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Lire le Drive
+        env:
+          DRIVE_API_KEY: ${{ secrets.DRIVE_API_KEY }}
+          DRIVE_FOLDER_ID: ${{ secrets.DRIVE_FOLDER_ID }}
+        run: python3 construire.py lister
+
+      - name: Reprendre les fichiers déjà convertis
+        uses: actions/cache/restore@v4
+        with:
+          path: .cache
+          key: medias-${{ hashFiles('manifest.json') }}
+          restore-keys: medias-
+
+      - name: Installer ffmpeg, poppler et numpy
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends ffmpeg poppler-utils python3-numpy
+
+      - name: Construire
+        env:
+          DRIVE_API_KEY: ${{ secrets.DRIVE_API_KEY }}
+        run: python3 construire.py construire
+
+      - name: Analyser
+        run: python3 outils/analyser_voix.py _site | tee -a "$GITHUB_STEP_SUMMARY"
