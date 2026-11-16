@@ -44,7 +44,7 @@ CONFIG = RACINE / "site.json"
 # À augmenter pour refaire tous les calculs (si la façon de convertir ou de caler change).
 VERSION_CONVERSION = "2"
 VERSION_MIX = "1"
-VERSION_NOTES = "3"   # façon de repérer le début et la fin du chant
+VERSION_NOTES = "4"   # façon de repérer le début et la fin du chant
 
 # Une vidéo (répétition filmée, fichier .mpeg) donne sa piste son.
 EXT_AUDIO = {".mp3", ".mpeg", ".mpga", ".mpg", ".m4a", ".aac", ".opus", ".ogg", ".oga", ".wav", ".flac", ".amr",
@@ -482,55 +482,25 @@ def notes_tenues(a: dict, duree_min: float = 0.3) -> list[tuple[int, int]]:
 
 
 def detecter_notes(mp3: Path) -> dict:
-    """Début et fin du chant dans une piste.
-
-    Une piste commence souvent par une annonce : le chef dit le titre, la voix, parfois chante la note de
-    départ. Le chant s'en distingue par sa force et sa continuité : le début est la première attaque d'un
-    passage d'au moins 3 s chanté aussi fort que le reste du morceau, presque sans interruption, et dont la
-    première seconde est déjà chantée fort. Les seuils se règlent sur la piste elle-même (une voix grave
-    paraît moins continue). La fin est la fin de la dernière note tenue."""
+    """Début et fin du chant dans une piste : la première et la dernière note tenue (même hauteur au moins
+    0,3 s, chantée assez fort). La parole ne tient pas sa hauteur et un clic ne dure pas ; mais une note de
+    départ chantée pendant l'annonce passe pour le début : un chef corrige alors le début à l'oreille
+    (page « Couper et caler les voix », document « Calage »)."""
     import numpy as np
 
     a = trames_voix(mp3)
-    db, fps, voisee = a["db"], a["fps"], a["voisee"].astype(float)
-    n = len(db)
-    if a["duree"] < 4:
+    db, fps = a["db"], a["fps"]
+    if a["duree"] < 1:
         return {"debut": 0.0, "fin": a["duree"], "sur": False}
-
-    def moyenne_devant(x: np.ndarray, largeur: int) -> np.ndarray:
-        cumul = np.concatenate([[0.0], np.cumsum(x)])
-        bout = np.minimum(np.arange(n) + largeur, n)
-        return (cumul[bout] - cumul[:n]) / np.maximum(bout - np.arange(n), 1)
-
-    niveau_db = np.maximum(db, -60)
-    milieu = slice(int(0.2 * n), int(0.8 * n))
-    niveau_corps = float(niveau_db[milieu].mean())
-    voix_corps = float(voisee[milieu].mean())
-    n1 = moyenne_devant(niveau_db, int(fps))
-    n3 = moyenne_devant(niveau_db, int(3 * fps))
-    v3 = moyenne_devant(voisee, int(3 * fps))
-    chante = (n1 >= niveau_corps - 6) & (n3 >= niveau_corps - 4) & (v3 >= max(0.4, 0.75 * voix_corps))
-    chante[n - int(3 * fps):] = False
     tenues = notes_tenues(a)
-    fin = tenues[-1][1] / fps if tenues else float(np.nonzero(db > -30)[0][-1] / fps)
-    if not chante.any():
-        return {"debut": round(tenues[0][0] / fps, 2) if tenues else 0.0, "fin": round(fin, 2), "sur": False}
-    i = int(np.argmax(chante))
-    while i < n - 1 and not (voisee[i] and db[i] > -28):
-        i += 1     # première trame chantée du passage
-    # Remonte jusqu'à l'attaque, tant que la voix chante sans s'interrompre (0,1 s au plus).
-    limite = max(0, i - int(1.0 * fps))
-    j, trou = i, 0
-    while j > limite:
-        if voisee[j - 1] and db[j - 1] > -28:
-            trou = 0
-        else:
-            trou += 1
-            if trou > int(0.1 * fps):
-                break
-        j -= 1
-    debut = j + trou
-    return {"debut": round(debut / fps, 2), "fin": round(max(fin, debut / fps + 1), 2), "sur": True}
+    if not tenues:
+        actif = np.nonzero(db > -30)[0]
+        return {"debut": float(actif[0] / fps) if len(actif) else 0.0,
+                "fin": float(actif[-1] / fps) if len(actif) else a["duree"], "sur": False}
+    debut, fin = tenues[0][0], tenues[-1][1]
+    while debut > 0 and db[debut - 1] > db[tenues[0][0]] - 15 and debut > tenues[0][0] - int(0.12 * fps):
+        debut -= 1   # l'attaque de la note, un peu avant que la hauteur se stabilise
+    return {"debut": round(debut / fps, 2), "fin": round(fin / fps, 2), "sur": True}
 
 
 def reperes_auto(f: dict) -> dict | None:
