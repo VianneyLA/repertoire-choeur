@@ -1,7 +1,10 @@
 # Répertoire du chœur
 
-Le site où les choristes écoutent leur voix, chant par chant : un lecteur par pupitre (reculer, ralentir,
-répéter un passage) et la partition dessous. Il se lit sur téléphone, sans compte ni application.
+Le site où les choristes travaillent leur voix, chant par chant, sur téléphone, sans compte ni application.
+La page d'un chant montre la partition en plein écran ; tout ce qui sert à répéter tient dans la barre du bas :
+la piste avec son volume (on y voit les respirations et les passages forts ; on la touche pour se placer, on
+glisse dessus pour choisir un passage), la façon d'écouter (seule, en avant, tutti, sans moi), la vitesse et la
+boucle sur la phrase en cours.
 
 Quand un chant a plusieurs voix, on peut aussi les écouter ensemble : sa voix en avant, tout le chœur, ou
 toutes les voix sauf la sienne, avec un volume par voix.
@@ -18,7 +21,8 @@ Dossier Drive des chefs ──(toutes les heures, GitHub Actions)──▶ const
 ```
 
 - `construire.py lister` lit le Drive (clé d'API et identifiant du dossier, dans les secrets du dépôt).
-- `construire.py construire` convertit les nouveaux fichiers, puis écrit le site dans `_site/`.
+- `construire.py construire` convertit les nouveaux fichiers, puis écrit le site dans `_site/`, avec pour chaque
+  chant un fichier `volumes-….json` : le volume de chaque piste toutes les 100 ms, pour dessiner la piste.
   Un fichier déjà converti ne l'est plus : le résultat reste dans le cache de GitHub Actions.
 - Le site n'est republié que si quelque chose a changé dans le Drive.
 - La voix d'un audio se devine d'après son nom (« Choeur infernal altos.opus » → Altos) : les règles et

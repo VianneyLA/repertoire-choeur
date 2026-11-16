@@ -20,7 +20,7 @@
 :root {
   --bg: #f2f3f7; --surface: #ffffff; --ink: #171a2b; --muted: #585d73; --line: #d9dce6; --soft: #e8eaf1;
   --sop: #c4410c; --alt: #9a6200; --ten: #0b7a75; --bas: #4c4fc9; --neutre: #4a5068;
-  --on-accent: #ffffff; --alerte: #a8361a;
+  --on-accent: #ffffff; --alerte: #a8361a; --boucle: rgba(23, 26, 43, .08);
   --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
   --font-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
@@ -31,7 +31,7 @@
   :root {
     --bg: #0f1118; --surface: #181b26; --ink: #eceef6; --muted: #9ba1b7; --line: #2b2f3f; --soft: #222634;
     --sop: #ff8a5c; --alt: #f2b632; --ten: #3cc9bb; --bas: #a3a6ff; --neutre: #c3c8d8;
-    --on-accent: #10121a; --alerte: #ff9b80;
+    --on-accent: #10121a; --alerte: #ff9b80; --boucle: rgba(236, 238, 246, .1);
     color-scheme: dark;
   }
 }
@@ -107,92 +107,75 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
 .lien-chefs { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 14px; border: 1.5px dashed var(--line); text-decoration: none; font-weight: 700; }
 .lien-chefs span { font-weight: 400; color: var(--muted); font-size: 14px; display: block; }
 
-/* Page d'un chant */
+/* Éléments repris par les pages de calage et des chefs */
 .retour { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; color: var(--muted); font-weight: 700; font-size: 15px; padding: 4px 0; }
-.onglets { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: var(--soft); border-radius: 14px; }
-.onglet { flex: 1 1 0; min-width: 76px; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 2px; border: 0; border-radius: 10px; background: transparent; font-size: 14px; font-weight: 700; }
-.onglet span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.onglet .pastille { width: 9px; height: 9px; }
-.onglet[aria-pressed="true"] { background: var(--c); color: var(--on-accent); }
-.onglet[aria-pressed="true"] .pastille { background: var(--on-accent); }
-.onglet:disabled { color: var(--muted); font-weight: 400; }
-.onglet:disabled .pastille { background: transparent; box-shadow: inset 0 0 0 1.5px var(--muted); }
-
-.melange { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
-.preset { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 10px 12px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--surface); text-align: left; min-width: 0; }
-.preset strong { font-size: 15px; line-height: 1.2; }
-.preset span { font-size: 13px; color: var(--muted); line-height: 1.25; }
-.preset[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
-
-.lecteur { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 18px 16px 16px; display: flex; flex-direction: column; gap: 14px; }
-.piste { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-.piste strong { font: 700 22px/1.15 var(--font-display); min-width: 0; overflow-wrap: anywhere; }
-.piste span { font-size: 13px; color: var(--muted); text-align: right; }
 .erreur { margin: 0; font-size: 14px; color: var(--alerte); }
-.chargement { margin: 0; font-size: 14px; color: var(--muted); display: flex; align-items: center; gap: 10px; }
-.chargement i { flex: 1; height: 4px; border-radius: 2px; background: var(--soft); overflow: hidden; position: relative; }
-.chargement i b { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--c); transition: width .2s; }
-
-.barre { position: relative; height: 34px; }
-.barre-int { position: absolute; top: 0; bottom: 0; left: 10px; right: 10px; }
-.rail { position: absolute; left: 0; right: 0; top: 50%; height: 6px; margin-top: -3px; border-radius: 3px; background: var(--soft); overflow: hidden; }
-.fait { height: 100%; width: 0; background: var(--c); }
-.zone { position: absolute; top: 50%; height: 22px; margin-top: -11px; border-radius: 5px; background: color-mix(in srgb, var(--c) 20%, transparent); box-shadow: inset 2px 0 0 var(--c), inset -2px 0 0 var(--c); pointer-events: none; }
-.zone.arme { width: 2px !important; background: var(--c); box-shadow: none; }
-.barre input[type="range"] { -webkit-appearance: none; appearance: none; position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; background: transparent; cursor: pointer; }
-.barre input[type="range"]::-webkit-slider-runnable-track { height: 34px; background: transparent; }
-.barre input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; margin-top: 7px; border-radius: 50%; background: var(--c); border: 3px solid var(--surface); box-shadow: 0 0 0 1px var(--c); }
-.barre input[type="range"]::-moz-range-track { height: 34px; background: transparent; }
-.barre input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--c); border: 3px solid var(--surface); box-shadow: 0 0 0 1px var(--c); }
-.barre input[type="range"]:focus-visible { outline: none; }
-.barre input[type="range"]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px var(--c); }
-.temps { display: flex; justify-content: space-between; margin-top: -8px; font: 500 13px/1 var(--font-mono); font-variant-numeric: tabular-nums; color: var(--muted); }
-
-.commandes { display: flex; align-items: center; justify-content: center; gap: 22px; }
 .rond { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--surface); font: 500 14px/1 var(--font-mono); }
 .rond:active { background: var(--soft); }
-.lecture { width: 76px; height: 76px; border: 0; background: var(--c); color: var(--on-accent); }
-.lecture:disabled { opacity: .45; }
-.lecture:active { background: var(--c); filter: brightness(.92); }
-.lecture svg { width: 30px; height: 30px; }
-
-.outils { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; padding-top: 12px; border-top: 1px solid var(--soft); }
-.outil-grp { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
-.seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 3px; background: var(--soft); border-radius: 10px; }
-.seg button { border: 0; background: transparent; padding: 8px 0; border-radius: 8px; font: 500 14px/1 var(--font-mono); }
-.seg button[aria-pressed="true"] { background: var(--surface); box-shadow: 0 1px 2px rgb(0 0 0 / .12); color: var(--ink); }
-.boucle-btns { display: flex; gap: 6px; flex-wrap: wrap; }
 .bouton { display: inline-flex; align-items: center; gap: 6px; padding: 9px 12px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--surface); font-size: 14px; font-weight: 700; text-decoration: none; }
 .bouton:disabled { opacity: .45; }
 .bouton.plein { background: var(--c); border-color: var(--c); color: var(--on-accent); }
 .bouton.discret { border-color: transparent; background: var(--soft); }
 .bouton.petit { padding: 6px 9px; font-size: 13px; border-radius: 8px; }
-.boucle-aide { grid-column: 1 / -1; }
-
-.reglages { border-top: 1px solid var(--soft); padding-top: 12px; }
-.reglages summary { cursor: pointer; font-weight: 700; font-size: 15px; list-style: none; display: flex; align-items: center; gap: 8px; }
-.reglages summary::-webkit-details-marker { display: none; }
-.reglages summary::before { content: ""; width: 8px; height: 8px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(-45deg); transition: transform .15s; }
-.reglages[open] summary::before { transform: rotate(45deg); }
-.curseurs { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
-.curseur { display: grid; grid-template-columns: 96px minmax(0, 1fr) 40px; align-items: center; gap: 10px; }
-.curseur label { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; min-width: 0; }
-.curseur label span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.curseur input { width: 100%; accent-color: var(--c); }
-.curseur output { font: 500 13px/1 var(--font-mono); color: var(--muted); text-align: right; }
-
-/* Partition */
-.partition-tete { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-.partition-tete h2 { margin: 0; font: 700 20px/1.2 var(--font-display); overflow-wrap: anywhere; }
-.pages { overflow-x: auto; border-radius: 10px; border: 1px solid var(--line); background: #fff; -webkit-overflow-scrolling: touch; }
-.pages a { display: block; }
-.pages a + a { border-top: 1px solid #d9dce6; }
-.pages img { display: block; width: 100%; height: auto; }
-.pages.zoom img { width: 220%; max-width: none; }
 .partition-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-
 .maj { margin: 0; font-size: 14px; color: var(--muted); }
 .lien-discret { font-size: 14px; color: var(--muted); }
+
+/* Page d'un chant : la partition occupe l'écran, tout ce qui sert à répéter tient dans la barre du bas, sous le pouce. */
+html.fige, html.fige body { overflow: hidden; }
+#vue-chant { position: fixed; inset: 0; z-index: 20; background: var(--bg); display: flex; justify-content: center; padding-top: env(safe-area-inset-top, 0px); }
+.chant-cadre { position: relative; width: 100%; max-width: 680px; height: 100%; min-height: 0; display: flex; flex-direction: column; }
+.chant-haut { flex: none; height: 56px; display: flex; align-items: center; gap: 6px; padding-left: max(6px, env(safe-area-inset-left, 0px)); padding-right: max(12px, env(safe-area-inset-right, 0px)); }
+.icone { width: 40px; height: 40px; border: 0; background: transparent; border-radius: 10px; display: grid; place-items: center; color: var(--muted); flex: none; }
+.titre-chant { flex: 1; min-width: 0; line-height: 1.12; }
+.titre-chant small, .titre-chant strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.titre-chant small { font-size: 12.5px; color: var(--muted); }
+.titre-chant strong { font: 700 19px/1.15 var(--font-display); }
+.pilule { border: 1.5px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 12px; font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; min-height: 38px; max-width: 48vw; flex: none; }
+.pilule > span:not(.pastille) { overflow: hidden; text-overflow: ellipsis; }
+.pilule:disabled { cursor: default; }
+.menu-voix { position: absolute; right: 12px; top: 54px; z-index: 5; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 10px 30px rgb(0 0 0 / .18); padding: 6px; display: flex; flex-direction: column; min-width: 200px; max-height: 60vh; overflow-y: auto; }
+.menu-voix button { border: 0; background: transparent; text-align: left; padding: 11px 12px; border-radius: 10px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+.menu-voix button[aria-pressed="true"] { background: var(--soft); }
+.menu-voix button:disabled { color: var(--muted); font-weight: 400; cursor: default; }
+.menu-voix button:disabled .pastille { background: transparent; box-shadow: inset 0 0 0 1.5px var(--muted); }
+.menu-voix small { margin-left: auto; font-size: 12px; color: var(--muted); font-weight: 400; }
+
+.partition-zone { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; gap: 12px;
+  padding-block: 2px 18px; padding-left: max(10px, env(safe-area-inset-left, 0px)); padding-right: max(10px, env(safe-area-inset-right, 0px)); }
+.partition-outils { display: flex; justify-content: flex-end; gap: 8px; }
+.pages { overflow-x: auto; border-radius: 10px; border: 1px solid var(--line); background: #fff; -webkit-overflow-scrolling: touch; flex: none; }
+.pages img { display: block; width: 100%; height: auto; }
+.pages img + img { border-top: 1px solid #d9dce6; }
+.partition-zone.zoom .pages img { width: 200%; max-width: none; }
+.sans-partition { margin-block: auto; padding: 28px 18px; border-radius: 14px; border: 1.5px dashed var(--line); text-align: center; display: flex; flex-direction: column; gap: 6px; }
+.sans-partition strong { font: 700 18px/1.25 var(--font-display); }
+
+.dock { flex: none; background: var(--surface); border-top: 1px solid var(--line); border-radius: 20px 20px 0 0; box-shadow: 0 -6px 24px rgb(0 0 0 / .08); padding-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+.dock-ligne { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding-left: max(14px, env(safe-area-inset-left, 0px)); padding-right: max(14px, env(safe-area-inset-right, 0px)); }
+.dock-ligne .aide { flex: 1; font-size: 13px; }
+.onde { position: relative; height: 68px; touch-action: none; user-select: none; -webkit-user-select: none; cursor: pointer;
+  margin-left: max(14px, env(safe-area-inset-left, 0px)); margin-right: max(14px, env(safe-area-inset-right, 0px)); }
+.onde canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.poignee { position: absolute; top: 0; bottom: 0; width: 44px; margin-left: -22px; touch-action: none; cursor: ew-resize; z-index: 2; }
+.poignee span { position: absolute; top: 0; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--bg); font: 500 11px/1 var(--font-mono); padding: 4px 6px; border-radius: 6px; white-space: nowrap; box-shadow: 0 1px 3px rgb(0 0 0 / .25); }
+.onde .chargement { position: absolute; inset: 18px 0 0; margin: 0; display: flex; align-items: center; justify-content: center; font-size: 13.5px; font-weight: 700; color: var(--muted); background: color-mix(in srgb, var(--surface) 82%, transparent); border-radius: 8px; }
+.temps { display: flex; justify-content: space-between; margin-top: -6px; font: 500 13px/1 var(--font-mono); font-variant-numeric: tabular-nums; color: var(--muted);
+  padding-left: max(14px, env(safe-area-inset-left, 0px)); padding-right: max(14px, env(safe-area-inset-right, 0px)); }
+.erreur-dock { margin: 0; font-size: 13.5px; color: var(--alerte); padding-left: max(14px, env(safe-area-inset-left, 0px)); padding-right: max(14px, env(safe-area-inset-right, 0px)); }
+.seg { flex: 1; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 3px; padding: 3px; background: var(--soft); border-radius: 11px; }
+.seg button { border: 0; background: transparent; border-radius: 8px; padding: 8px 2px; font-size: 13.5px; font-weight: 700; min-height: 38px; line-height: 1.1; }
+.seg button[aria-pressed="true"] { background: var(--surface); box-shadow: 0 1px 2px rgb(0 0 0 / .14); color: var(--ink); }
+.seg button:disabled { color: var(--muted); opacity: .55; cursor: default; }
+.transport { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding-block: 2px calc(10px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(14px, env(safe-area-inset-left, 0px)); padding-right: max(14px, env(safe-area-inset-right, 0px)); }
+.tbtn { width: 58px; border: 0; background: transparent; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; font-weight: 700; color: var(--muted); padding: 4px 0; border-radius: 12px; }
+.tbtn svg { width: 26px; height: 26px; color: var(--ink); }
+.tbtn[aria-pressed="true"], .tbtn[aria-pressed="true"] svg { color: var(--c); }
+.lire { width: 72px; height: 72px; border-radius: 50%; border: 0; background: var(--c); color: var(--on-accent); display: grid; place-items: center; flex: none; box-shadow: 0 4px 14px color-mix(in srgb, var(--c) 35%, transparent); }
+.lire svg { width: 30px; height: 30px; }
+.lire:disabled { opacity: .45; }
+.lire:active { transform: scale(.96); }
 
 /* Calage */
 .cartes-calage { display: flex; flex-direction: column; gap: 10px; }
@@ -224,11 +207,6 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
 
 .pied { padding-top: 14px; border-top: 1px solid var(--line); }
 
-@media (max-width: 420px) {
-  .outils { grid-template-columns: minmax(0, 1fr); }
-  .commandes { gap: 16px; }
-  .curseur { grid-template-columns: 84px minmax(0, 1fr) 36px; }
-}
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
 </style>
 </head>
@@ -256,79 +234,41 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
     </a>
   </main>
 
-  <!-- Un chant -->
-  <main class="vue" id="vue-chant" hidden>
-    <a class="retour" href="#"><svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true"><path d="M13 4l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Répertoire</a>
-    <div>
-      <p class="eyebrow" id="chant-groupe"></p>
-      <h1 id="chant-titre"></h1>
-    </div>
-
-    <div class="bloc-serre" id="bloc-voix">
-      <h2 class="label" id="lbl-voix">Ta voix</h2>
-      <div class="onglets" role="group" aria-labelledby="lbl-voix" id="onglets"></div>
-    </div>
-
-    <div class="bloc-serre" id="bloc-melange" hidden>
-      <h2 class="label" id="lbl-melange">Écouter</h2>
-      <div class="melange" role="group" aria-labelledby="lbl-melange" id="melange"></div>
-    </div>
-
-    <section class="lecteur" id="lecteur" aria-label="Lecteur">
-      <div class="piste"><strong id="piste-nom"></strong><span id="piste-info"></span></div>
-      <p class="chargement" id="chargement" hidden><span id="chargement-txt"></span><i><b id="chargement-barre"></b></i></p>
-      <p class="erreur" id="erreur" hidden></p>
-      <div>
-        <div class="barre">
-          <div class="barre-int">
-            <div class="rail"><div class="fait" id="fait"></div></div>
-            <div class="zone" id="zone" hidden></div>
-          </div>
-          <input type="range" id="position" min="0" max="100" step="0.1" value="0" aria-label="Position dans l'enregistrement">
+  <!-- Un chant : la partition plein écran, le lecteur dans une barre en bas -->
+  <main id="vue-chant" data-voix="mix" hidden>
+    <div class="chant-cadre">
+      <div class="chant-haut">
+        <a class="icone" href="#" aria-label="Retour au répertoire"><svg width="22" height="22" viewBox="0 0 20 20" aria-hidden="true"><path d="M13 4l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <div class="titre-chant"><small id="chant-groupe"></small><strong id="chant-titre"></strong></div>
+        <button class="pilule" id="voix-btn" type="button" aria-haspopup="true" aria-expanded="false"><span class="pastille"></span><span id="voix-nom"></span><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button>
+      </div>
+      <div class="menu-voix" id="menu-voix" hidden></div>
+      <div class="partition-zone" id="partition-zone"></div>
+      <div class="dock" id="dock">
+        <div class="onde" id="onde">
+          <canvas id="onde-canvas"></canvas>
+          <div class="poignee" data-k="0" hidden><span></span></div>
+          <div class="poignee" data-k="1" hidden><span></span></div>
+          <p class="chargement" id="chargement" hidden></p>
         </div>
         <div class="temps"><span id="t-courant">0:00</span><span id="t-total">–:––</span></div>
-      </div>
-      <div class="commandes">
-        <button class="rond" id="recul" aria-label="Reculer de 5 secondes">−5 s</button>
-        <button class="rond lecture" id="lecture" aria-label="Lire">
-          <svg viewBox="0 0 24 24" id="ico-lire" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg>
-          <svg viewBox="0 0 24 24" id="ico-pause" aria-hidden="true" hidden><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" fill="currentColor"/></svg>
-        </button>
-        <button class="rond" id="avance" aria-label="Avancer de 5 secondes">+5 s</button>
-      </div>
-      <div class="outils">
-        <div class="outil-grp">
-          <span class="label" id="lbl-vitesse">Vitesse</span>
-          <div class="seg" role="group" aria-labelledby="lbl-vitesse" id="vitesse">
-            <button data-v="0.5" aria-pressed="false">0,5×</button>
-            <button data-v="0.75" aria-pressed="false">0,75×</button>
-            <button data-v="1" aria-pressed="true">1×</button>
-          </div>
+        <p class="erreur-dock" id="erreur" hidden></p>
+        <div class="dock-ligne">
+          <span class="aide" id="aide-geste">Touche la piste pour te placer, glisse dessus pour choisir un passage.</span>
+          <div class="seg" id="melange" role="group" aria-label="Écouter"></div>
+          <button class="pilule" id="vitesse-btn" type="button" aria-label="Vitesse de lecture">1×</button>
         </div>
-        <div class="outil-grp">
-          <span class="label">Répéter un passage</span>
-          <div class="boucle-btns">
-            <button class="bouton" id="boucle">Marquer le début</button>
-            <button class="bouton discret" id="boucle-stop" hidden>Annuler</button>
-          </div>
+        <div class="transport">
+          <button class="tbtn" id="debut" type="button" aria-label="Revenir au début"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5v14M19 5l-10 7 10 7z" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><span>Début</span></button>
+          <button class="tbtn" id="recul" type="button" aria-label="Reculer de 5 secondes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5a7 7 0 1 1-6.6 4.7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 4v5h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>−5 s</span></button>
+          <button class="lire" id="lecture" type="button" aria-label="Lire">
+            <svg viewBox="0 0 24 24" id="ico-lire" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg>
+            <svg viewBox="0 0 24 24" id="ico-pause" aria-hidden="true" hidden><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" fill="currentColor"/></svg>
+          </button>
+          <button class="tbtn" id="avance" type="button" aria-label="Avancer de 5 secondes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5a7 7 0 1 0 6.6 4.7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M20 4v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>+5 s</span></button>
+          <button class="tbtn" id="boucle-btn" type="button" aria-pressed="false" aria-label="Répéter la phrase en cours"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3l3 3-3 3M4 11V9a3 3 0 0 1 3-3h13M7 21l-3-3 3-3M20 13v2a3 3 0 0 1-3 3H4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Boucle</span></button>
         </div>
-        <p class="aide boucle-aide" id="boucle-aide"></p>
       </div>
-      <details class="reglages" id="reglages" hidden>
-        <summary>Régler chaque voix</summary>
-        <div class="curseurs" id="curseurs"></div>
-        <p class="aide" style="margin-top:12px">Une voix commence par une annonce ou se décale ? <a id="lien-calage-2" href="#">Couper et caler les voix</a> (chefs de chœur).</p>
-      </details>
-    </section>
-
-    <section class="lecteur" id="sans-audio" hidden>
-      <p class="texte">Pas encore d'enregistrement pour ce chant.</p>
-    </section>
-
-    <div class="vue" id="partitions"></div>
-    <div class="bloc-serre">
-      <p class="maj" id="chant-maj"></p>
-      <a class="lien-discret" id="lien-calage" href="#" hidden>Une voix commence mal ou se décale des autres ? Couper et caler les voix (chefs de chœur)</a>
     </div>
   </main>
 
@@ -663,93 +603,74 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
   };
 
   /* ================= Page d'un chant : état ================= */
-  const pos = $('position');
-  let chant = null, piste = null, mode = 'seule', vitesse = 1, glisse = false, reglages = null, occupe = false;
-  const boucle = { etat: 'off', a: 0, b: 0 };
+  const MELANGES = [['seule', 'Seule'], ['avant', 'En avant'], ['tout', 'Tutti'], ['sans', 'Sans moi']];
+  const VITESSES = [1, 0.75, 0.5];
+  let chant = null, piste = null, mode = 'seule', vitesse = 1, occupe = false;
+  let boucle = null;          // [début, fin] dans le temps du moteur en cours, ou null
+  let volumes = null;         // volume de chaque piste, lu à l'ouverture du chant
+  let autresEnv = null;       // volume des autres voix (le plus fort des autres), pour la piste en cours
   const moteur = () => mode === 'seule' ? A : B;
   const dureeCourante = () => mode === 'seule' ? (isFinite(A.duree()) ? A.duree() : (piste && piste.duree - coupe(piste)) || NaN) : B.duree();
 
   function volumesPour(m) {
-    return B.pistes.map((p, i) => {
+    return B.pistes.map(p => {
       const moi = p === piste;
       if (m === 'avant') return moi ? 1 : 0.28;
       if (m === 'sans') return moi ? 0 : 1;
-      if (m === 'perso' && reglages) return reglages[i];
       return 1;
     });
   }
 
-  function dessinerOnglets() {
+  /* ---------- Choix de la voix ---------- */
+  function fermerMenu() { $('menu-voix').hidden = true; $('voix-btn').setAttribute('aria-expanded', 'false'); }
+  function dessinerMenuVoix() {
     const presentes = new Set(chant.pistes.map(p => p.voix));
     const avecStd = STANDARD.some(v => presentes.has(v));
-    const boutons = [];
+    const items = [];
+    const item = p => {
+      const b = el('button', { type: 'button', 'data-voix': p.voix, 'aria-pressed': String(p === piste) }, el('span', { class: 'pastille' }), el('span', { text: p.nom }));
+      b.addEventListener('click', () => { fermerMenu(); choisirPiste(p); });
+      return b;
+    };
     STANDARD.forEach(v => {
       const pv = chant.pistes.filter(p => p.voix === v);
-      if (!pv.length && avecStd) boutons.push(el('button', { class: 'onglet', 'data-voix': v, disabled: true, title: NOMS[v] + ' : pas encore d’enregistrement' }, el('span', { class: 'pastille' }), el('span', { text: NOMS[v] })));
-      pv.forEach(p => boutons.push(bouton(p)));
+      if (!pv.length && avecStd) items.push(el('button', { type: 'button', 'data-voix': v, disabled: true }, el('span', { class: 'pastille' }), el('span', { text: NOMS[v] }), el('small', { text: 'pas encore' })));
+      pv.forEach(p => items.push(item(p)));
     });
-    chant.pistes.filter(p => !STANDARD.includes(p.voix)).forEach(p => boutons.push(bouton(p)));
-    $('onglets').replaceChildren(...boutons);
-    $('bloc-voix').hidden = chant.pistes.length < 2 && !avecStd;
-    function bouton(p) {
-      const b = el('button', { class: 'onglet', 'data-voix': p.voix, 'aria-pressed': String(p === piste), title: p.nom }, el('span', { class: 'pastille' }), el('span', { text: COURT[p.nom] || p.nom }));
-      b.addEventListener('click', () => choisirPiste(p));
-      return b;
-    }
+    chant.pistes.filter(p => !STANDARD.includes(p.voix)).forEach(p => items.push(item(p)));
+    $('menu-voix').replaceChildren(...items);
+  }
+  $('voix-btn').addEventListener('click', e => {
+    e.stopPropagation();
+    if (!chant || chant.pistes.length < 2) return;
+    const ouvrir = $('menu-voix').hidden;
+    if (ouvrir) dessinerMenuVoix();
+    $('menu-voix').hidden = !ouvrir;
+    $('voix-btn').setAttribute('aria-expanded', String(ouvrir));
+  });
+  document.addEventListener('click', e => { if (!$('menu-voix').hidden && !e.target.closest('#menu-voix')) fermerMenu(); });
+
+  function majEntete() {
+    $('voix-nom').textContent = piste ? piste.nom : '';
+    $('vue-chant').dataset.voix = piste ? piste.voix : 'mix';
+    $('voix-btn').disabled = !chant || chant.pistes.length < 2;
+    $('voix-btn').querySelector('svg').style.display = chant && chant.pistes.length > 1 ? '' : 'none';
   }
 
   function dessinerMelange() {
-    $('bloc-melange').hidden = !chant.mix;
-    if (!chant.mix) return;
-    const mixable = !!(piste && piste.mix);
-    $('melange').replaceChildren(...PRESETS.map(([id, titre, sous]) => {
-      let detail = sous;
-      if (id === 'sans' && mixable) detail = 'Sans les ' + minuscule(piste.nom) + ', à toi de chanter';
-      const b = el('button', { class: 'preset', 'aria-pressed': String(id === mode), disabled: id !== 'seule' && !mixable }, el('strong', { text: titre }), el('span', { text: detail }));
+    const avecMix = !!(chant && chant.mix);
+    const mixable = !!(avecMix && piste && piste.mix);
+    $('melange').hidden = !avecMix;
+    $('aide-geste').hidden = avecMix;
+    $('melange').replaceChildren(...MELANGES.map(([id, lib]) => {
+      const b = el('button', { type: 'button', 'aria-pressed': String(id === mode), disabled: id !== 'seule' && !mixable }, lib);
       b.addEventListener('click', () => changerMode(id));
       return b;
     }));
-    dessinerCurseurs();
   }
 
-  function dessinerCurseurs() {
-    const voir = mode !== 'seule' && B.pistes.length > 0;
-    $('reglages').hidden = !voir;
-    if (!voir) return;
-    const vals = volumesPour(mode);
-    $('curseurs').replaceChildren(...B.pistes.map((p, i) => {
-      const id = 'vol-' + i;
-      const sortie = el('output', { for: id, text: Math.round(vals[i] * 100) + '' });
-      const r = el('input', { type: 'range', id, min: '0', max: '100', step: '1', value: String(Math.round(vals[i] * 100)), 'aria-label': 'Volume ' + p.nom });
-      r.addEventListener('input', () => {
-        if (mode !== 'perso') { reglages = volumesPour(mode); mode = 'perso'; majPresets(); majEntete(); }
-        reglages[i] = +r.value / 100;
-        sortie.textContent = r.value;
-        B.volumes(reglages);
-      });
-      return el('div', { class: 'curseur', 'data-voix': p.voix }, el('label', { for: id }, el('span', { class: 'pastille' }), el('span', { text: p.nom })), r, sortie);
-    }));
-  }
-  function majPresets() { $('melange').querySelectorAll('.preset').forEach((b, i) => b.setAttribute('aria-pressed', String(PRESETS[i][0] === mode))); }
-
-  function majEntete() {
-    const n = B.pistes.length;
-    let nom = piste ? piste.nom : '', info = '', voix = piste ? piste.voix : 'mix';
-    if (mode === 'seule') info = piste && piste.duree ? fmt(piste.duree - coupe(piste)) : '';
-    else if (mode === 'avant') info = 'en avant, avec les autres voix';
-    else if (mode === 'tout') { nom = 'Tout le chœur'; info = n + ' voix ensemble'; voix = 'mix'; }
-    else if (mode === 'sans') { nom = 'Sans les ' + minuscule(piste.nom); info = 'à toi de chanter ta voix'; }
-    else { nom = 'Mon réglage'; info = n + ' voix ensemble'; voix = 'mix'; }
-    $('piste-nom').textContent = nom;
-    $('piste-info').textContent = info;
-    $('lecteur').dataset.voix = voix;
-  }
-
-  function chargementUI(fait, total) {
-    $('chargement').hidden = false;
-    $('chargement-txt').textContent = 'Chargement des voix (' + fait + '/' + total + ')';
-    $('chargement-barre').style.width = (total ? fait / total * 100 : 0) + '%';
-  }
+  /* ---------- Chargement, erreurs ---------- */
+  function chargementUI(fait, total) { $('chargement').hidden = false; $('chargement').textContent = 'Chargement des voix (' + fait + '/' + total + ')'; }
   function finChargement() { $('chargement').hidden = true; }
   function erreur(texte) { $('erreur').textContent = texte; $('erreur').hidden = !texte; }
 
@@ -757,8 +678,7 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
     B.choisir(chant);
     occupe = true; majBoutonLecture();
     try {
-      const ok = await B.preparer(vitesse, chargementUI);
-      return ok;
+      return await B.preparer(vitesse, chargementUI);
     } catch (e) {
       erreur('Les voix n’ont pas pu se charger. Vérifie ta connexion, puis réessaie.');
       return false;
@@ -767,12 +687,13 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
     }
   }
 
+  /* ---------- Écouter seule, en avant, tutti, sans moi ---------- */
   async function changerMode(m) {
     if (m === mode || occupe) return;
     erreur('');
     const ancien = moteur();
     const changeMoteur = (mode === 'seule') !== (m === 'seule');
-    if (!changeMoteur) { mode = m; B.volumes(volumesPour(m)); majPresets(); majEntete(); dessinerCurseurs(); return; }
+    if (!changeMoteur) { mode = m; B.volumes(volumesPour(m)); dessinerMelange(); majTout(); return; }
     const conv = m === 'seule' ? (x => versPiste(piste, x)) : (x => versMix(piste, x));
     if (m !== 'seule') {   // la voix seule continue pendant le chargement des autres
       const ok = await preparerMix();
@@ -781,16 +702,16 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
     const jouait = ancien.enLecture(), t = ancien.position();
     ancien.pause();
     mode = m;
-    if (boucle.etat !== 'off') { boucle.a = conv(boucle.a); boucle.b = conv(boucle.b); }
+    if (boucle) boucle = [conv(boucle[0]), conv(boucle[1])];
     if (m === 'seule') {
       await A.charger(piste.src, piste.coupe);
       A.aller(conv(t));
     } else {
       B.volumes(volumesPour(m));
-      B.boucle(boucle.etat === 'actif' ? [boucle.a, boucle.b] : null);
+      B.boucle(boucle);
       B.aller(conv(t));
     }
-    majPresets(); majEntete(); dessinerCurseurs(); majBoucleUI(); majTout();
+    calculerAutres(); dessinerMelange(); majTout();
     if (jouait) await lancer();
   }
 
@@ -798,14 +719,15 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
     if (p === piste || occupe) return;
     erreur('');
     if (mode !== 'seule') {
-      if (p.mix) { piste = p; B.volumes(volumesPour(mode)); dessinerOnglets(); dessinerMelange(); majEntete(); return; }
+      if (p.mix) { piste = p; B.volumes(volumesPour(mode)); calculerAutres(); majEntete(); dessinerMelange(); majTout(); return; }
       await changerMode('seule');
     }
     const ancienne = piste, jouait = A.enLecture(), t = A.position();
+    // Changer de voix garde la position musicale : on passe par le temps commun du mélange.
     const conv = x => (ancienne && ancienne.mix && p.mix) ? versPiste(p, versMix(ancienne, x)) : x;
-    if (boucle.etat !== 'off') { boucle.a = conv(boucle.a); boucle.b = conv(boucle.b); }
+    if (boucle) boucle = [conv(boucle[0]), conv(boucle[1])];
     piste = p;
-    dessinerOnglets(); dessinerMelange(); majEntete(); majBoucleUI();
+    calculerAutres(); majEntete(); dessinerMelange();
     A.pause();
     const ok = await A.charger(p.src, p.coupe);
     if (!ok) { erreur('Cette piste ne se lit pas. Recharge la page ; si ça continue, préviens un chef de chœur.'); return; }
@@ -814,11 +736,140 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
     if (jouait) await lancer();
   }
 
-  /* ================= Lecture, position, boucle ================= */
+  /* ---------- Volume des pistes : ce qu'on dessine ---------- */
+  function calculerAutres() {
+    autresEnv = null;
+    if (!volumes || !piste || !chant.mix) return;
+    const i = chant.pistes.indexOf(piste);
+    const autres = chant.pistes.map((p, k) => k !== i && p.mix ? volumes.mix[k] : null).filter(a => a && a.length);
+    if (!autres.length) return;
+    const n = Math.max(...autres.map(a => a.length));
+    autresEnv = new Array(n).fill(0);
+    autres.forEach(a => a.forEach((v, k) => { if (v > autresEnv[k]) autresEnv[k] = v; }));
+  }
+  function couches() {
+    if (!volumes || !piste) return [];
+    const i = chant.pistes.indexOf(piste);
+    if (mode === 'seule') return [{ env: volumes.solo[i], decal: coupe(piste), couleur: piste.voix, alpha: 1 }];
+    return [
+      { env: autresEnv, decal: 0, couleur: 'neutre', alpha: mode === 'avant' ? 0.4 : 0.6 },
+      { env: volumes.mix[i], decal: 0, couleur: piste.voix, alpha: mode === 'sans' ? 0.35 : 1 },
+    ];
+  }
+  // Phrases de ma voix : passages chantés entre deux respirations d'au moins 0,3 s.
+  function phrasesActuelles() {
+    const c = couches().find(x => x.couleur !== 'neutre');
+    if (!c || !c.env || !c.env.length) return [];
+    const pas = volumes.pas, env = c.env, res = [];
+    let i = 0;
+    while (i < env.length) {
+      if (env[i] <= 22) { i++; continue; }
+      let j = i, trou = 0;
+      while (j + 1 < env.length) { if (env[j + 1] > 22) trou = 0; else if (++trou > 3) break; j++; }
+      const fin = j - trou;
+      if ((fin - i + 1) * pas >= 1) res.push([i * pas - c.decal, (fin + 1) * pas - c.decal]);
+      i = j + 1;
+    }
+    return res.filter(p => p[1] > 0);
+  }
+
+  const couleur = n => getComputedStyle(document.documentElement).getPropertyValue('--' + n).trim();
+  function dessinerOnde() {
+    const cv = $('onde-canvas'), r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+    if (!r.width || !r.height) return;
+    if (cv.width !== Math.round(r.width * dpr) || cv.height !== Math.round(r.height * dpr)) { cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr); }
+    const g = cv.getContext('2d');
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, r.width, r.height);
+    const D = dureeCourante(), W = r.width, H = r.height, haut = 18, h = H - haut;
+    const poignees = $('onde').querySelectorAll('.poignee');
+    if (!isFinite(D) || !D) { poignees.forEach(p => { p.hidden = true; }); return; }
+    const pos = moteur().position(), x = t => t / D * W;
+    if (boucle) { g.fillStyle = couleur('boucle'); g.fillRect(x(boucle[0]), haut, x(boucle[1]) - x(boucle[0]), h); }
+    const larg = 3, nb = Math.floor(W / larg), pas = volumes ? volumes.pas : 0.1;
+    couches().forEach(c => {
+      if (!c.env || !c.env.length || !c.alpha) return;
+      g.fillStyle = couleur(c.couleur);
+      for (let b = 0; b < nb; b++) {
+        const t0 = b / nb * D, t1 = (b + 1) / nb * D;
+        let m = 0;
+        for (let k = Math.floor((t0 + c.decal) / pas); k < Math.ceil((t1 + c.decal) / pas) && k < c.env.length; k++) if (k >= 0 && c.env[k] > m) m = c.env[k];
+        if (m < 2) continue;
+        g.globalAlpha = c.alpha * (t0 < pos ? 1 : 0.42);
+        const hb = Math.max(1.5, m / 99 * h * 0.94);
+        g.fillRect(b * larg, haut + (h - hb) / 2, larg - 1, hb);
+      }
+    });
+    g.globalAlpha = 1;
+    g.fillStyle = couleur('ink');
+    if (boucle) [boucle[0], boucle[1]].forEach(t => g.fillRect(Math.round(x(t)) - 1, haut, 2, h));
+    g.fillRect(Math.round(x(Math.min(pos, D))) - 1, haut, 2, h);
+    poignees.forEach(p => {
+      if (!boucle) { p.hidden = true; return; }
+      const k = +p.dataset.k;
+      p.hidden = false; p.style.left = x(boucle[k]) + 'px';
+      p.querySelector('span').textContent = fmt(boucle[k]);
+    });
+  }
+
+  /* ---------- Gestes sur la piste : toucher = se placer, glisser = choisir un passage ---------- */
+  (function brancherOnde() {
+    const onde = $('onde');
+    let geste = null;
+    const tDe = e => { const r = onde.getBoundingClientRect(); return Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * (dureeCourante() || 0); };
+    onde.addEventListener('pointerdown', e => {
+      if (!isFinite(dureeCourante()) || occupe) return;
+      onde.setPointerCapture(e.pointerId);
+      const p = e.target.closest('.poignee');
+      geste = { x0: e.clientX, t0: tDe(e), poignee: p ? +p.dataset.k : null, bouge: false };
+    });
+    onde.addEventListener('pointermove', e => {
+      if (!geste) return;
+      if (Math.abs(e.clientX - geste.x0) > 8) geste.bouge = true;
+      if (!geste.bouge) return;
+      const t = tDe(e);
+      if (geste.poignee != null && boucle) {
+        const b = boucle.slice(); b[geste.poignee] = t;
+        if (b[1] - b[0] >= 0.5) boucle = b;
+      } else if (geste.poignee == null) {
+        const a = Math.min(geste.t0, t), z = Math.max(geste.t0, t);
+        if (z - a >= 0.5) boucle = [a, z];
+      }
+      majTout();
+    });
+    onde.addEventListener('pointerup', e => {
+      if (!geste) return;
+      if (!geste.bouge) {
+        const t = tDe(e);
+        if (boucle && (t < boucle[0] || t > boucle[1])) { boucle = null; if (mode !== 'seule') B.boucle(null); }
+        moteur().aller(t);
+      } else appliquerBoucle();
+      geste = null; majTout();
+    });
+    onde.addEventListener('pointercancel', () => { geste = null; });
+  })();
+
+  function appliquerBoucle() {
+    if (mode !== 'seule') B.boucle(boucle);
+    if (boucle) { const p = moteur().position(); if (p < boucle[0] || p > boucle[1]) moteur().aller(boucle[0]); }
+  }
+  function basculerBoucle() {
+    if (boucle) { boucle = null; if (mode !== 'seule') B.boucle(null); majTout(); return; }
+    const p = moteur().position(), D = dureeCourante() || 0, ph = phrasesActuelles();
+    // Une « phrase » de plus de 20 s veut dire que les respirations ne se voient pas : on boucle 8 s autour de soi.
+    const cible = (ph.find(x => p >= x[0] - 0.4 && p < x[1] + 0.4) || ph.find(x => x[0] > p));
+    boucle = cible && cible[1] - cible[0] <= 20 ? [Math.max(0, cible[0] - 0.4), Math.min(D, cible[1] + 0.35)]
+      : [Math.max(0, p - 1), Math.min(D, Math.max(0, p - 1) + 8)];
+    appliquerBoucle();
+    moteur().aller(boucle[0]);
+    majTout();
+  }
+
+  /* ---------- Lecture ---------- */
   let anime = false, verrou = null;
   function animer() {
     const m = moteur(), p = m.position(), d = dureeCourante();
-    if (mode === 'seule' && boucle.etat === 'actif' && p >= boucle.b) A.aller(boucle.a);
+    if (mode === 'seule' && boucle && p >= boucle[1]) A.aller(boucle[0]);
     if (mode !== 'seule' && B.lecture && !B.ab && p >= d - 0.02) { B.pause(); B.pos = d; majBoutonLecture(); liberer(); }
     majTout();
     if (m.enLecture()) requestAnimationFrame(animer); else anime = false;
@@ -834,7 +885,7 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
 
   async function lancer() {
     if (mode === 'seule') {
-      if (boucle.etat === 'actif' && (A.position() < boucle.a || A.position() >= boucle.b)) A.aller(boucle.a);
+      if (boucle && (A.position() < boucle[0] || A.position() >= boucle[1])) A.aller(boucle[0]);
       await A.jouer();
     } else {
       await B.jouer();
@@ -853,48 +904,14 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
     if ('mediaSession' in navigator) { try { navigator.mediaSession.playbackState = joue ? 'playing' : 'paused'; } catch (e) {} }
   }
 
-  function majZone() {
-    const d = dureeCourante(), zone = $('zone');
-    if (boucle.etat === 'off' || !isFinite(d) || !d) { zone.hidden = true; return; }
-    zone.hidden = false;
-    zone.classList.toggle('arme', boucle.etat === 'arme');
-    zone.style.left = (boucle.a / d * 100) + '%';
-    zone.style.width = boucle.etat === 'actif' ? ((boucle.b - boucle.a) / d * 100) + '%' : '2px';
-  }
-
-  function majBoucleUI() {
-    const btn = $('boucle'), stop = $('boucle-stop'), aide = $('boucle-aide');
-    if (boucle.etat === 'off') {
-      btn.hidden = false; btn.textContent = 'Marquer le début'; btn.classList.remove('plein');
-      stop.hidden = true;
-      aide.textContent = 'Pendant l’écoute, marque le début du passage puis sa fin : il se répète en boucle. Changer de voix garde ta position et ta boucle.';
-    } else if (boucle.etat === 'arme') {
-      btn.hidden = false; btn.textContent = 'Marquer la fin'; btn.classList.add('plein');
-      stop.hidden = false; stop.textContent = 'Annuler';
-      aide.textContent = 'Début à ' + fmt(boucle.a) + '. Touche « Marquer la fin » quand le passage est fini.';
-    } else {
-      btn.hidden = true;
-      stop.hidden = false; stop.textContent = 'Arrêter la boucle';
-      aide.textContent = 'Le passage de ' + fmt(boucle.a) + ' à ' + fmt(boucle.b) + ' se répète. Ralentis-le si besoin.';
-    }
-    if (mode !== 'seule') aide.textContent += ' L’écran reste allumé pendant l’écoute à plusieurs voix.';
-    majZone();
-  }
-
   function majTout() {
     const d = dureeCourante(), t = moteur().position();
-    if (isFinite(d) && d > 0) {
-      pos.max = d.toFixed(2);
-      if (!glisse) pos.value = t;
-      $('fait').style.width = Math.min(100, t / d * 100) + '%';
-      $('t-total').textContent = fmt(d);
-    } else {
-      $('fait').style.width = '0';
-      $('t-total').textContent = '–:––';
-      if (!glisse) pos.value = 0;
-    }
-    $('t-courant').textContent = fmt(glisse ? +pos.value : t);
-    majZone();
+    $('t-courant').textContent = fmt(Math.min(t, isFinite(d) ? d : t));
+    $('t-total').textContent = isFinite(d) ? fmt(d) : '–:––';
+    $('boucle-btn').setAttribute('aria-pressed', String(!!boucle));
+    $('boucle-btn').setAttribute('aria-label', boucle ? 'Arrêter la boucle' : 'Répéter la phrase en cours');
+    $('vitesse-btn').textContent = String(vitesse).replace('.', ',') + '×';
+    dessinerOnde();
   }
 
   A.audio.addEventListener('play', () => { if (mode === 'seule') { majBoutonLecture(); lancerAnimation(); } });
@@ -903,7 +920,7 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
   A.audio.addEventListener('loadedmetadata', () => { if (mode === 'seule') majTout(); });
   A.audio.addEventListener('timeupdate', () => {
     if (mode !== 'seule') return;
-    if (boucle.etat === 'actif' && A.position() >= boucle.b) A.aller(boucle.a);
+    if (boucle && A.position() >= boucle[1]) A.aller(boucle[0]);
     if (A.audio.paused || document.hidden) majTout();
   });
 
@@ -915,44 +932,33 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
   }
   $('recul').addEventListener('click', () => saut(-5));
   $('avance').addEventListener('click', () => saut(5));
-  pos.addEventListener('input', () => { glisse = true; majTout(); });
-  pos.addEventListener('change', () => { moteur().aller(+pos.value); glisse = false; majTout(); });
+  $('debut').addEventListener('click', () => { moteur().aller(boucle ? boucle[0] : 0); majTout(); });
+  $('boucle-btn').addEventListener('click', basculerBoucle);
 
-  $('vitesse').addEventListener('click', async e => {
-    const b = e.target.closest('button[data-v]');
-    if (!b || occupe) return;
-    const v = +b.dataset.v;
-    if (v === vitesse) return;
+  async function changerVitesse(v) {
+    if (occupe || v === vitesse) return;
     vitesse = v;
-    $('vitesse').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
     appliquerVitesseA();
+    majTout();
     if (mode !== 'seule' && B.chant) {
       const jouait = B.enLecture(), t = B.position();
       B.pause();
       const ok = await preparerMix();
       if (ok) { B.aller(t); if (jouait) lancer(); }
     }
-  });
-
-  $('boucle').addEventListener('click', () => {
-    const t = moteur().position();
-    if (boucle.etat === 'off') { boucle.a = t; boucle.etat = 'arme'; }
-    else if (boucle.etat === 'arme') {
-      if (t <= boucle.a + 0.5) { $('boucle-aide').textContent = 'La fin doit venir après le début (' + fmt(boucle.a) + '). Laisse jouer, puis touche à nouveau.'; return; }
-      boucle.b = t; boucle.etat = 'actif';
-      if (mode === 'seule') A.aller(boucle.a); else { B.boucle([boucle.a, boucle.b]); B.aller(boucle.a); }
-    }
-    majBoucleUI();
-  });
-  $('boucle-stop').addEventListener('click', () => { boucle.etat = 'off'; if (mode !== 'seule') B.boucle(null); majBoucleUI(); });
+  }
+  $('vitesse-btn').addEventListener('click', () => changerVitesse(VITESSES[(VITESSES.indexOf(vitesse) + 1) % VITESSES.length]));
 
   document.addEventListener('keydown', e => {
     if ($('vue-chant').hidden || !piste || e.metaKey || e.ctrlKey || e.altKey) return;
     if (e.target.closest('input, textarea, select')) return;
-    if (e.key === ' ' && !e.target.closest('button, summary')) { e.preventDefault(); $('lecture').click(); }
+    if (e.key === ' ' && !e.target.closest('button')) { e.preventDefault(); $('lecture').click(); }
     else if (e.key === 'ArrowLeft') { e.preventDefault(); saut(-5); }
     else if (e.key === 'ArrowRight') { e.preventDefault(); saut(5); }
+    else if (e.key === 'Escape') fermerMenu();
   });
+  window.addEventListener('resize', () => { if (!$('vue-chant').hidden) dessinerOnde(); });
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (!$('vue-chant').hidden) dessinerOnde(); });
 
   function majMedia() {
     if (!('mediaSession' in navigator) || !piste) return;
@@ -969,44 +975,49 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
 
   /* ================= Ouvrir un chant ================= */
   function ouvrirChant(c) {
-    if (chant === c) return;
-    A.pause(); B.vider(); liberer();
-    boucle.etat = 'off';
-    chant = c; piste = null; mode = 'seule'; reglages = null;
+    if (chant === c) { requestAnimationFrame(majTout); return; }
+    A.pause(); B.vider(); liberer(); fermerMenu();
+    chant = c; piste = null; mode = 'seule'; boucle = null; volumes = null; autresEnv = null;
     $('chant-groupe').textContent = c.groupe;
     $('chant-groupe').hidden = !c.groupe;
     $('chant-titre').textContent = c.titre;
-    $('chant-maj').textContent = 'Mis à jour le ' + dateLongue(c.maj) + '.';
-    $('lien-calage').hidden = !c.pistes.some(p => p.reperes);
-    $('lien-calage').href = '#calage-' + c.slug;
-    $('lien-calage-2').href = '#calage-' + c.slug;
     erreur('');
-    const aAudio = c.pistes.length > 0;
-    $('lecteur').hidden = !aAudio;
-    $('sans-audio').hidden = aAudio;
-    majBoucleUI();
-    if (aAudio) choisirPiste(c.pistes.find(p => p.voix === monPupitre) || c.pistes[0]);
-    else { A.vider(); $('bloc-voix').hidden = true; $('bloc-melange').hidden = true; }
-    dessinerPartitions(c);
+    $('dock').hidden = !c.pistes.length;
+    dessinerPartition(c);
+    if (c.pistes.length) choisirPiste(c.pistes.find(p => p.voix === monPupitre) || c.pistes[0]);
+    else { A.vider(); majEntete(); }
+    dessinerMelange();
+    if (c.volumes) {
+      fetch(c.volumes).then(r => r.ok ? r.json() : null).then(v => {
+        if (chant !== c || !v) return;
+        volumes = v; calculerAutres(); majTout();
+      }).catch(() => {});
+    }
+    requestAnimationFrame(majTout);
   }
 
-  function dessinerPartitions(c) {
-    const box = $('partitions');
-    if (!c.partitions.length) { box.replaceChildren(el('p', { class: 'aide', text: 'Pas encore de partition pour ce chant.' })); return; }
-    const plusieurs = c.partitions.length > 1;
-    box.replaceChildren(...c.partitions.map(p => {
-      const pages = el('div', { class: 'pages' }, p.pages.map((pg, i) =>
-        el('a', { href: pg.src, target: '_blank', rel: 'noopener', 'aria-label': 'Page ' + (i + 1) + ' en grand' },
+  function dessinerPartition(c) {
+    const box = $('partition-zone');
+    box.classList.remove('zoom');
+    const enfants = [];
+    if (c.partitions.length) {
+      const zoom = el('button', { class: 'pilule', type: 'button', text: 'Agrandir' });
+      zoom.addEventListener('click', () => { const z = box.classList.toggle('zoom'); zoom.textContent = z ? 'Réduire' : 'Agrandir'; });
+      enfants.push(el('div', { class: 'partition-outils' }, zoom));
+      c.partitions.forEach(p => {
+        if (c.partitions.length > 1) enfants.push(el('p', { class: 'label', text: p.nom }));
+        enfants.push(el('div', { class: 'pages' }, p.pages.map((pg, i) =>
           el('img', { src: pg.src, width: pg.l, height: pg.h, loading: i ? 'lazy' : 'eager', alt: 'Partition, page ' + (i + 1) }))));
-      const zoom = el('button', { class: 'bouton', type: 'button', text: 'Agrandir' });
-      zoom.addEventListener('click', () => { const z = pages.classList.toggle('zoom'); zoom.textContent = z ? 'Réduire' : 'Agrandir'; });
-      const nbPages = p.pages.length + (p.pages.length > 1 ? ' pages' : ' page');
-      return el('section', { class: 'bloc' },
-        el('div', { class: 'partition-tete' }, el('h2', { text: plusieurs ? p.nom : 'Partition' }), el('span', { class: 'aide', text: (p.pdf ? 'PDF · ' : '') + nbPages })),
-        pages,
-        el('div', { class: 'partition-actions' }, zoom,
-          p.pdf ? el('a', { class: 'bouton discret', href: p.pdf, target: '_blank', rel: 'noopener', text: 'Ouvrir le PDF' }) : null));
-    }));
+        if (p.pdf) enfants.push(el('div', { class: 'partition-actions' }, el('a', { class: 'bouton discret', href: p.pdf, target: '_blank', rel: 'noopener', text: 'Ouvrir le PDF' })));
+      });
+    } else {
+      enfants.push(el('div', { class: 'sans-partition' }, el('strong', { text: 'Pas encore de partition' }),
+        el('p', { class: 'aide', text: c.pistes.length ? 'Les chefs de chœur peuvent la déposer, en PDF ou en photos, dans le dossier Drive du chant.' : 'Ni partition ni enregistrement pour l’instant.' })));
+    }
+    enfants.push(el('p', { class: 'maj', text: 'Mis à jour le ' + dateLongue(c.maj) + '.' }));
+    if (c.pistes.some(p => p.reperes)) enfants.push(el('a', { class: 'lien-discret', href: '#calage-' + c.slug, text: 'Une voix commence mal ou se décale des autres ? Couper et caler les voix (chefs de chœur)' }));
+    box.replaceChildren(...enfants);
+    box.scrollTop = 0;
   }
 
   /* ================= Calage (chefs de chœur) ================= */
@@ -1139,6 +1150,7 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
     const cc = h.startsWith('calage-') ? D.chants.find(x => x.slug === h.slice(7) && x.pistes.some(p => p.reperes)) : null;
     const vue = c ? 'chant' : cc ? 'calage' : h === 'chefs' ? 'chefs' : 'accueil';
     ['accueil', 'chant', 'calage', 'chefs'].forEach(v => { $('vue-' + v).hidden = v !== vue; });
+    document.documentElement.classList.toggle('fige', vue === 'chant');
     if (vue !== 'calage') AC.pause();
     if (vue === 'chant') ouvrirChant(c);
     else { A.pause(); B.pause(); liberer(); majBoutonLecture(); document.title = D.nom + ' · Répertoire'; }
@@ -1150,7 +1162,6 @@ h1 { margin: 0; font: 700 clamp(30px, 8vw, 40px)/1.05 var(--font-display); lette
     window.scrollTo(0, 0);
   }
 
-  majBoucleUI();
   window.addEventListener('hashchange', afficher);
   afficher();
 })();

@@ -43,7 +43,9 @@ CONFIG = RACINE / "site.json"
 
 # À augmenter pour refaire tous les calculs (si la façon de convertir ou de caler change).
 VERSION_CONVERSION = "2"
-VERSION_MIX = "1"
+VERSION_MIX = "2"
+VERSION_VOLUME = "1"
+PAS_VOLUME = 0.1     # une valeur de volume toutes les 100 ms, pour dessiner la piste
 VERSION_NOTES = "4"   # façon de repérer le début et la fin du chant
 
 # Une vidéo (répétition filmée, fichier .mpeg) donne sa piste son.
@@ -503,6 +505,29 @@ def detecter_notes(mp3: Path) -> dict:
     return {"debut": round(debut / fps, 2), "fin": round(fin / fps, 2), "sur": True}
 
 
+def enveloppe(mp3: Path) -> list[int]:
+    """Volume de la piste toutes les PAS_VOLUME secondes, de 0 à 99, rapporté à son moment le plus fort.
+    La racine 0,6 garde visibles les nuances : un forte monte haut, un piano reste bas, un silence tombe à 0."""
+    import numpy as np
+
+    sr = 8000
+    brut = subprocess.run(["ffmpeg", "-v", "error", "-i", str(mp3), "-ac", "1", "-ar", str(sr), "-f", "f32le", "-"],
+                          capture_output=True, check=True).stdout
+    x = np.frombuffer(brut, dtype="<f4").astype(np.float64)
+    n = int(sr * PAS_VOLUME)
+    k = len(x) // n
+    if not k:
+        return []
+    rms = np.sqrt((x[: k * n].reshape(k, n) ** 2).mean(axis=1))
+    rms /= rms.max() + 1e-12
+    return [int(v) for v in np.round(99 * rms ** 0.6)]
+
+
+def volume_piste(f: dict) -> dict | None:
+    return en_cache(CACHE / (cle_cache(f) + "-volume" + VERSION_VOLUME),
+                    lambda tmp: {"env": enveloppe(CACHE / cle_cache(f) / "piste.mp3")})
+
+
 def reperes_auto(f: dict) -> dict | None:
     dossier = CACHE / (cle_cache(f) + "-notes" + VERSION_NOTES)
     return en_cache(dossier, lambda tmp: detecter_notes(CACHE / cle_cache(f) / "piste.mp3"))
@@ -565,10 +590,11 @@ def rendre_mix(f: dict, reperes: list[float], commun: list[float]) -> dict | Non
             lancer(cmd + ["-ac", "1", "-ar", "24000", "-codec:a", "libmp3lame", "-b:a", debit, str(sortie)])
             fichiers[nom] = sortie.name
         cale.unlink()
+        env = enveloppe(tmp / "v1.mp3")
         carte = [[round(bornes[0][0], 3), round(SILENCE - avant, 3)]]
         carte += [[round(t, 3), round(SILENCE + c, 3)] for t, c in zip(reperes, commun)]
         carte.append([round(reperes[-1] + APRES, 3), round(SILENCE + commun[-1] + APRES, 3)])
-        return {"fichiers": fichiers, "carte": carte, "cle": cle}
+        return {"fichiers": fichiers, "carte": carte, "cle": cle, "env": env}
 
     return en_cache(CACHE / f"mix-{cle}", fabriquer)
 
@@ -651,7 +677,7 @@ def caler_chant(c: dict, pistes: list[dict], fichiers_pistes: list[dict], calage
             cible = f"{slug(pistes[i]['nom'])}-cale-{meta['cle'][:8]}-{nom.replace('.', '')}.mp3"
             copier(CACHE / f"mix-{meta['cle']}" / fichier, dest / cible)
             src[nom] = f"m/{s}/{cible}"
-        pistes[i]["mix"] = {"src": src, "carte": meta["carte"]}
+        pistes[i]["mix"] = {"src": src, "carte": meta["carte"], "env": meta.get("env", [])}
     return {"duree": round(SILENCE + commun[-1] + APRES, 2), "manuel": any(i in manuels for i in idx),
             "vitesses": [v for v, _, _ in VITESSES]}
 
@@ -736,9 +762,21 @@ def construire(manifeste: dict, cle_api: str | None) -> dict:
             alertes.append({"chant": c["nom"], "fichier": "Écoute à plusieurs voix", "raison": f"Calage impossible ({e})."})
         for p in pistes:
             del p["num"]
+        # Le volume de chaque piste (déposée et recalée) va dans un fichier à part, lu à l'ouverture du chant.
+        volumes = {"pas": PAS_VOLUME, "solo": [], "mix": []}
+        for p, f in zip(pistes, fichiers_pistes):
+            v = volume_piste(f)
+            volumes["solo"].append(v["env"] if v else [])
+            volumes["mix"].append(p["mix"].pop("env", []) if p.get("mix") else [])
         partitions = pdfs + ([{"nom": "Partition", "pdf": "", "pages": images}] if images else [])
         chant = {"slug": s, "ordre": ordre, "groupe": groupe, "titre": titre,
                  "maj": max(dates), "pistes": pistes, "partitions": partitions}
+        if pistes and not TRAVAIL["simuler"]:
+            texte = json.dumps(volumes, separators=(",", ":"))
+            nom = f"volumes-{hashlib.sha1(texte.encode()).hexdigest()[:8]}.json"
+            dest.mkdir(parents=True, exist_ok=True)
+            (dest / nom).write_text(texte)
+            chant["volumes"] = f"m/{s}/{nom}"
         if mix and all("mix" in p for p in pistes if p["voix"] in VOIX_MIX):
             chant["mix"] = mix
         chants.append(chant)
